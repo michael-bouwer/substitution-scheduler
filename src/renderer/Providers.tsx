@@ -1,8 +1,8 @@
+import { Subject, Teacher } from './Types';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 import React from 'react';
 import { StorageKeys } from './lib';
-import { Teacher } from './Types';
 import localforage from 'localforage';
 
 type Props = {
@@ -11,18 +11,16 @@ type Props = {
 
 interface AppContext {
   teachers: Teacher[];
-  addTeacher: (
-    initial: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-    contact: string
-  ) => void;
+  addTeacher: (newTeacher: Teacher) => void;
+  editTeacher: (teacher: Teacher) => void;
+  subjects: Subject[];
 }
 
 const appContextValues: AppContext = {
   teachers: [],
   addTeacher: () => {},
+  editTeacher: () => {},
+  subjects: [],
 };
 
 const appContext = createContext<AppContext>(appContextValues);
@@ -32,6 +30,7 @@ const AppProvider = (props: Props) => {
   localforage.createInstance({ name: 'teachers' });
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -42,30 +41,51 @@ const AppProvider = (props: Props) => {
     })();
   }, []);
 
-  const addTeacher = (
-    initial: string,
-    firstName: string,
-    lastName: string,
-    email: string,
-    contact: string
-  ) => {
-    const newTeacher = {
-      key: `${initial.toLowerCase()}-${firstName.toLowerCase()}-${lastName.toLowerCase()}`,
-      initial,
-      firstName,
-      lastName,
-      email,
-      contact,
-    };
+  useEffect(() => {
+    (async () => {
+      const _subjects = await localforage.getItem<Subject[]>(
+        StorageKeys.SUBJECTS
+      );
+      if (_subjects?.length) setSubjects(_subjects);
+    })();
+  }, []);
+
+  const addTeacher = (newTeacher: Teacher) => {
     if (!teachers.find((t) => t && t.key === newTeacher.key)) {
       const newTeachers = [...teachers, newTeacher];
       localforage.setItem(StorageKeys.TEACHERS, newTeachers);
+      setTeachers(newTeachers);
+    }
+  };
+
+  const editTeacher = (teacher: Teacher) => {
+    if (teachers.find((t) => t && t.key === teacher.key)) {
+      const copy = teachers.map((t) => {
+        if (t.key === teacher.key)
+          t = {
+            ...teacher,
+            key: `${teacher.initial.toLowerCase()}-${teacher.firstName.toLowerCase()}-${teacher.lastName.toLowerCase()}`,
+          };
+        return t;
+      });
+      localforage.setItem(StorageKeys.TEACHERS, copy);
+      setTeachers(copy);
+    }
+  };
+
+  const addSubject = (newSubject: Subject) => {
+    if (!subjects.find((s) => s && s.code === newSubject.code)) {
+      const newSubjects = [...subjects, newSubject];
+      localforage.setItem(StorageKeys.SUBJECTS, newSubjects);
+      setSubjects(newSubjects);
     }
   };
 
   const value = {
     teachers,
     addTeacher,
+    editTeacher,
+    subjects,
   };
 
   return React.createElement(appContext.Provider, { value }, props.children);

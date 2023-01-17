@@ -27,7 +27,7 @@ const DB = (props: Props) => {
         Reset all teacher and class data, then seed data with new JSON file.
       </h2>
       <Alert severity="warning">
-        Careful! Doing this will undo any captured information.
+        Careful! Doing this will erase any captured information.
       </Alert>
       <Box
         sx={{

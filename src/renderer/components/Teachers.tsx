@@ -53,7 +53,7 @@ const rows = [
 type Props = {};
 
 const Teachers = (props: Props) => {
-  const { teachers, addTeacher } = useApp();
+  const { teachers, addTeacher, editTeacher } = useApp();
   const [isOpenAddTeacherModal, setIsOpenAddTeacherModal] =
     useState<boolean>(false);
   const [initial, setInitial] = useState<string>('');
@@ -71,13 +71,27 @@ const Teachers = (props: Props) => {
     setLastName('');
     setEmail('');
     setContact('');
-
-
   };
 
   const handleSubmit = (e: any) => {
     if (mode === ModalMode.ADD)
-      addTeacher(initial, firstName, lastName, email, contact);
+      addTeacher({
+        key: `${initial.toLowerCase()}-${firstName.toLowerCase()}-${lastName.toLowerCase()}`,
+        initial,
+        firstName,
+        lastName,
+        email,
+        contact,
+      });
+    else if (mode === ModalMode.EDIT)
+      editTeacher({
+        key: selectedTeacher!.key,
+        initial,
+        firstName,
+        lastName,
+        email,
+        contact,
+      });
 
     reset();
   };
