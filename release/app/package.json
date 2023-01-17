@@ -1,12 +1,10 @@
 {
-  "name": "electron-react-boilerplate",
+  "name": "substitution-scheduler",
   "version": "4.6.0",
-  "description": "A foundation for scalable desktop apps",
+  "description": "An app to track leave/substition schedules for teachers.",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "Substitution Scheduler"
   },
   "main": "./dist/main/main.js",
   "scripts": {

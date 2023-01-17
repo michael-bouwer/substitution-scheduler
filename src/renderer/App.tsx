@@ -1,50 +1,45 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
-import './App.css';
+import './App.scss';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  IconButton,
+  Toolbar,
+} from '@mui/material';
+import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
+
+import Admin from './pages/Admin';
+import HeaderNav from './components/HeaderNav';
 
 const Hello = () => {
-  return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
-      </div>
-    </div>
-  );
+  return <div className="test">as</div>;
+};
+
+const Goodbye = () => {
+  return <div>Goodbye</div>;
 };
 
 export default function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Hello />} />
-      </Routes>
+      <Box className="app">
+        <CssBaseline />
+        <HeaderNav />
+        <Box className="content">
+          <Routes>
+            <Route path="/" element={<Admin />} />
+            <Route path="/home" element={<Hello />} />
+            <Route path="/goodbye" element={<Goodbye />} />
+          </Routes>
+        </Box>
+      </Box>
     </Router>
   );
 }
