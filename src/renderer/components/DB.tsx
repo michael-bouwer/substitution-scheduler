@@ -8,21 +8,10 @@ import {
   Typography,
 } from '@mui/material';
 
+import { modalStyle } from 'renderer/lib';
 import { useState } from 'react';
 
 type Props = {};
-
-const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 600,
-  bgcolor: 'background.paper',
-  borderRadius: '8px',
-  boxShadow: 24,
-  p: 4,
-};
 
 const DB = (props: Props) => {
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
@@ -70,7 +59,7 @@ const DB = (props: Props) => {
         }}
       >
         <Fade in={isOpenDeleteModal}>
-          <Box sx={style}>
+          <Box sx={modalStyle}>
             <Typography id="transition-modal-title" variant="h6" component="h2">
               Confirmation
             </Typography>
@@ -113,7 +102,7 @@ const DB = (props: Props) => {
         }}
       >
         <Fade in={isOpenSeedModal}>
-          <Box sx={style}>
+          <Box sx={modalStyle}>
             <Typography id="transition-modal-title" variant="h6" component="h2">
               Upload New Data
             </Typography>
