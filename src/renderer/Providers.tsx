@@ -11,16 +11,26 @@ type Props = {
 
 interface AppContext {
   teachers: Teacher[];
-  addTeacher: (newTeacher: Teacher) => void;
+  addTeacher: (teacher: Teacher) => void;
   editTeacher: (teacher: Teacher) => void;
+  deleteTeacher: (teacher: Teacher) => void;
   subjects: Subject[];
+  addSubject: (subject: Subject) => void;
+  editSubject: (subject: Subject) => void;
+  deleteSubject: (subject: Subject) => void;
+  clearAllData: () => void;
 }
 
 const appContextValues: AppContext = {
   teachers: [],
   addTeacher: () => {},
   editTeacher: () => {},
+  deleteTeacher: () => {},
   subjects: [],
+  addSubject: () => {},
+  editSubject: () => {},
+  deleteSubject: () => {},
+  clearAllData: () => {},
 };
 
 const appContext = createContext<AppContext>(appContextValues);
@@ -50,9 +60,9 @@ const AppProvider = (props: Props) => {
     })();
   }, []);
 
-  const addTeacher = (newTeacher: Teacher) => {
-    if (!teachers.find((t) => t && t.key === newTeacher.key)) {
-      const newTeachers = [...teachers, newTeacher];
+  const addTeacher = (teacher: Teacher) => {
+    if (!teachers.find((t) => t && t.key === teacher.key)) {
+      const newTeachers = [...teachers, teacher];
       localforage.setItem(StorageKeys.TEACHERS, newTeachers);
       setTeachers(newTeachers);
     }
@@ -73,19 +83,53 @@ const AppProvider = (props: Props) => {
     }
   };
 
-  const addSubject = (newSubject: Subject) => {
-    if (!subjects.find((s) => s && s.code === newSubject.code)) {
-      const newSubjects = [...subjects, newSubject];
+  const deleteTeacher = (teacher: Teacher) => {
+    const copy = teachers.filter((t) => t && t.key !== teacher.key);
+    localforage.setItem(StorageKeys.TEACHERS, copy);
+    setTeachers(copy);
+  };
+
+  const addSubject = (subject: Subject) => {
+    if (!subjects.find((s) => s && s.code === subject.code)) {
+      const newSubjects = [...subjects, subject];
       localforage.setItem(StorageKeys.SUBJECTS, newSubjects);
       setSubjects(newSubjects);
     }
+  };
+
+  const editSubject = (subject: Subject) => {
+    if (subjects.find((s) => s && s.code === subject.code)) {
+      const copy = subjects.map((s) => {
+        if (s.code === subject.code) s = subject;
+        return s;
+      });
+      localforage.setItem(StorageKeys.SUBJECTS, copy);
+      setSubjects(copy);
+    }
+  };
+
+  const deleteSubject = (subject: Subject) => {
+    const copy = subjects.filter((s) => s && s.code !== subject.code);
+    localforage.setItem(StorageKeys.SUBJECTS, copy);
+    setSubjects(copy);
+  };
+
+  const clearAllData = () => {
+    localforage.clear();
+    setTeachers([]);
+    setSubjects([]);
   };
 
   const value = {
     teachers,
     addTeacher,
     editTeacher,
+    deleteTeacher,
     subjects,
+    addSubject,
+    editSubject,
+    deleteSubject,
+    clearAllData,
   };
 
   return React.createElement(appContext.Provider, { value }, props.children);

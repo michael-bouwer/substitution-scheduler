@@ -9,16 +9,17 @@ import {
 } from '@mui/material';
 
 import { modalStyle } from 'renderer/lib';
+import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 
-type Props = {};
-
-const DB = (props: Props) => {
+const DB = () => {
+  const { clearAllData } = useApp();
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
   const [isOpenSeedModal, setIsOpenSeedModal] = useState<boolean>(false);
 
   const handleDelete = () => {
-    localStorage.clear();
+    clearAllData();
+    setIsOpenDeleteModal(false);
   };
 
   return (

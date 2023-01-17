@@ -4,6 +4,7 @@ import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
 
 import DB from 'renderer/components/DB';
 import React from 'react';
+import Subjects from 'renderer/components/Subjects';
 import Teachers from 'renderer/components/Teachers';
 
 type Props = {};
@@ -68,7 +69,7 @@ const Admin = (props: Props) => {
           sx={{ borderRight: 1, borderColor: 'divider' }}
         >
           <Tab label="Teachers" {...a11yProps(0)} />
-          <Tab label="Classes" {...a11yProps(1)} />
+          <Tab label="Subjects" {...a11yProps(1)} />
           <Tab label="Reset Data" {...a11yProps(2)} />
           {/* <Tab label="Item Four" {...a11yProps(3)} />
           <Tab label="Item Five" {...a11yProps(4)} />
@@ -79,7 +80,7 @@ const Admin = (props: Props) => {
           <Teachers />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <Teachers />
+          <Subjects />
         </TabPanel>
         <TabPanel value={value} index={2}>
           <DB />

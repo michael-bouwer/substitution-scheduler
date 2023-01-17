@@ -151,4 +151,8 @@ body {
   a {
     text-decoration: none;
   }
+
+  div[role='tabpanel'] {
+    width: 100%;
+  }
 }

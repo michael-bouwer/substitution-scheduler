@@ -5,6 +5,11 @@ import {
   Backdrop,
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   Fade,
   FormControl,
@@ -32,29 +37,11 @@ import { Teacher } from 'renderer/Types';
 import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number
-) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
-
-type Props = {};
-
-const Teachers = (props: Props) => {
-  const { teachers, addTeacher, editTeacher } = useApp();
+const Teachers = () => {
+  const { teachers, addTeacher, editTeacher, deleteTeacher } = useApp();
   const [isOpenAddTeacherModal, setIsOpenAddTeacherModal] =
+    useState<boolean>(false);
+  const [isOpenDeleteTeacher, setIsOpenDeleteTeacher] =
     useState<boolean>(false);
   const [initial, setInitial] = useState<string>('');
   const [firstName, setFirstName] = useState<string>('');
@@ -66,6 +53,7 @@ const Teachers = (props: Props) => {
 
   const reset = () => {
     setIsOpenAddTeacherModal(false);
+    setIsOpenDeleteTeacher(false);
     setInitial('');
     setFirstName('');
     setLastName('');
@@ -74,25 +62,33 @@ const Teachers = (props: Props) => {
   };
 
   const handleSubmit = (e: any) => {
+    e.preventDefault();
     if (mode === ModalMode.ADD)
       addTeacher({
-        key: `${initial.toLowerCase()}-${firstName.toLowerCase()}-${lastName.toLowerCase()}`,
-        initial,
-        firstName,
-        lastName,
-        email,
-        contact,
+        key: `${initial.trim().toLowerCase()}-${firstName
+          .trim()
+          .toLowerCase()}-${lastName.trim().toLowerCase()}`,
+        initial: initial.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        contact: contact.trim(),
       });
     else if (mode === ModalMode.EDIT)
       editTeacher({
         key: selectedTeacher!.key,
-        initial,
-        firstName,
-        lastName,
-        email,
-        contact,
+        initial: initial.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        contact: contact.trim(),
       });
 
+    reset();
+  };
+
+  const handleDelete = () => {
+    if (selectedTeacher) deleteTeacher(selectedTeacher);
     reset();
   };
 
@@ -100,8 +96,12 @@ const Teachers = (props: Props) => {
     <Box className="teachers">
       <h2>Add, remove and edit teacher details.</h2>
       {teachers?.length ? (
-        <TableContainer component={Paper} sx={{ maxHeight: 250 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table" stickyHeader>
+        <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+          <Table
+            sx={{ minWidth: 650, width: '100%' }}
+            aria-label="simple table"
+            stickyHeader
+          >
             <TableHead>
               <TableRow>
                 <TableCell align="center">Initial</TableCell>
@@ -143,7 +143,13 @@ const Teachers = (props: Props) => {
                     </IconButton>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton color="error">
+                    <IconButton
+                      color="error"
+                      onClick={() => {
+                        setIsOpenDeleteTeacher(true);
+                        setSelectedTeacher(teacher);
+                      }}
+                    >
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -305,6 +311,33 @@ const Teachers = (props: Props) => {
           </Box>
         </Fade>
       </Modal>
+
+      {/* Delete a teacher */}
+      <Dialog
+        open={isOpenDeleteTeacher}
+        onClose={reset}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">{'Confirm?'}</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete teacher:{' '}
+            <strong>
+              {selectedTeacher?.firstName} {selectedTeacher?.lastName}
+            </strong>
+            ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ my: 2, mx: 2, columnGap: '8px' }}>
+          <Button onClick={handleDelete} variant="contained" color="error">
+            Delete
+          </Button>
+          <Button onClick={reset} autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
