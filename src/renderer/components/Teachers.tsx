@@ -1,7 +1,5 @@
 import './Teachers.scss';
 
-import * as React from 'react';
-
 import { Box, Button, IconButton } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
 
@@ -33,6 +31,7 @@ const rows = [
 type Props = {};
 
 const Teachers = (props: Props) => {
+
   return (
     <Box className="teachers">
       <h2>Add, remove and edit teacher details.</h2>

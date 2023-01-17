@@ -122,6 +122,8 @@
     "react-router-dom": "^6.4.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.20.12",
+    "@babel/eslint-parser": "^7.19.1",
     "@electron/notarize": "^1.2.3",
     "@electron/rebuild": "^3.2.10",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
@@ -138,7 +140,6 @@
     "@types/webpack-bundle-analyzer": "^4.4.2",
     "@typescript-eslint/eslint-plugin": "^5.33.1",
     "@typescript-eslint/parser": "^5.33.1",
-    "babel-eslint": "^10.1.0",
     "browserslist-config-erb": "^0.0.3",
     "chalk": "^4.1.2",
     "concurrently": "^7.3.0",
@@ -151,7 +152,7 @@
     "electron-builder": "^23.3.3",
     "electron-devtools-installer": "^3.2.0",
     "electronmon": "^2.0.2",
-    "eslint": "^8.22.0",
+    "eslint": "^8.32.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-erb": "^4.0.3",
     "eslint-import-resolver-typescript": "^3.4.1",

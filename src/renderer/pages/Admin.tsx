@@ -2,6 +2,7 @@ import './Admin.scss';
 
 import { Box, Container, Tab, Tabs, Typography } from '@mui/material';
 
+import DB from 'renderer/components/DB';
 import React from 'react';
 import Teachers from 'renderer/components/Teachers';
 
@@ -68,8 +69,8 @@ const Admin = (props: Props) => {
         >
           <Tab label="Teachers" {...a11yProps(0)} />
           <Tab label="Classes" {...a11yProps(1)} />
-          {/* <Tab label="Item Three" {...a11yProps(2)} />
-          <Tab label="Item Four" {...a11yProps(3)} />
+          <Tab label="Reset Data" {...a11yProps(2)} />
+          {/* <Tab label="Item Four" {...a11yProps(3)} />
           <Tab label="Item Five" {...a11yProps(4)} />
           <Tab label="Item Six" {...a11yProps(5)} />
           <Tab label="Item Seven" {...a11yProps(6)} /> */}
@@ -81,7 +82,7 @@ const Admin = (props: Props) => {
           <Teachers />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          Item Three
+          <DB />
         </TabPanel>
         <TabPanel value={value} index={3}>
           Item Four

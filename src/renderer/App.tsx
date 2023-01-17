@@ -17,6 +17,7 @@ import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 
 import Admin from './pages/Admin';
 import HeaderNav from './components/HeaderNav';
+import Providers from './Providers';
 
 const Hello = () => {
   return <div className="test">as</div>;
@@ -29,17 +30,19 @@ const Goodbye = () => {
 export default function App() {
   return (
     <Router>
-      <Box className="app">
-        <CssBaseline />
-        <HeaderNav />
-        <Box className="content">
-          <Routes>
-            <Route path="/" element={<Admin />} />
-            <Route path="/home" element={<Hello />} />
-            <Route path="/goodbye" element={<Goodbye />} />
-          </Routes>
+      <Providers>
+        <Box className="app">
+          <CssBaseline />
+          <HeaderNav />
+          <Box className="content">
+            <Routes>
+              <Route path="/" element={<Admin />} />
+              <Route path="/home" element={<Hello />} />
+              <Route path="/goodbye" element={<Goodbye />} />
+            </Routes>
+          </Box>
         </Box>
-      </Box>
+      </Providers>
     </Router>
   );
 }
