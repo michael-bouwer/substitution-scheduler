@@ -12,3 +12,5 @@ export interface Subject {
   code: string;
   description: string | undefined;
 }
+
+export type DOW = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';

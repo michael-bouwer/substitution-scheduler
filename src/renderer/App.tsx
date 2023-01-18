@@ -18,6 +18,8 @@ import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import Admin from './pages/Admin';
 import HeaderNav from './components/HeaderNav';
 import Providers from './Providers';
+import SubstitutionSchedule from './pages/SubstitutionSchedule';
+import Timetable from './pages/Timetable';
 
 const Hello = () => {
   return <div className="test">as</div>;
@@ -37,8 +39,8 @@ export default function App() {
           <Box className="content">
             <Routes>
               <Route path="/" element={<Admin />} />
-              <Route path="/home" element={<Hello />} />
-              <Route path="/goodbye" element={<Goodbye />} />
+              <Route path="/timetable" element={<Timetable />} />
+              <Route path="/sub-sched" element={<SubstitutionSchedule />} />
             </Routes>
           </Box>
         </Box>
