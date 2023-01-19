@@ -13,6 +13,7 @@ export const modalStyle = {
 export enum StorageKeys {
   TEACHERS = 'teachers',
   SUBJECTS = 'subjects',
+  FREE_PERIODS = 'free-periods',
 }
 
 export enum ModalMode {

@@ -177,7 +177,7 @@ const Teachers = () => {
         Add A Teacher
       </Button>
 
-      {/* Add a teacher */}
+      {/* Add/Edit a teacher */}
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"

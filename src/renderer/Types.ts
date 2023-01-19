@@ -8,9 +8,16 @@ export interface Teacher {
 }
 
 export interface Subject {
+  key: string;
   name: string;
   code: string;
   description: string | undefined;
+}
+
+export interface FreePeriod {
+  day: DOW;
+  teacher: Teacher;
+  periods: string[];
 }
 
 export type DOW = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';

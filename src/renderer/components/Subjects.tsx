@@ -60,12 +60,14 @@ const Subjects = () => {
     e.preventDefault();
     if (mode === ModalMode.ADD)
       addSubject({
+        key: code.trim().toUpperCase(),
         code: code.trim().toUpperCase(),
         name: name.trim(),
         description: description.trim(),
       });
     else if (mode === ModalMode.EDIT)
       editSubject({
+        key: selectedSubject!.key,
         code: code.trim().toUpperCase(),
         name: name.trim(),
         description: description.trim(),

@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Fade,
   FormControl,
   Grid,
@@ -17,7 +18,7 @@ import {
   SelectChangeEvent,
   Typography,
 } from '@mui/material';
-import { DOW, Teacher } from 'renderer/Types';
+import { DOW, FreePeriod, Teacher } from 'renderer/Types';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
 import { Add } from '@mui/icons-material';
@@ -53,32 +54,24 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   // },
 }));
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number
-) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Monday', 159, 6.0, 24, 4.0),
-  createData('Tuesday', 237, 9.0, 37, 4.3),
-  createData('Wednesday', 262, 16.0, 24, 6.0),
-  createData('Thursday', 305, 3.7, 67, 4.3),
-  createData('Firday', 356, 16.0, 49, 3.9),
-];
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const periodNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
 
 const SubstitutionSchedule = () => {
-  const { teachers } = useApp();
+  const { teachers, freePeriods, updateFreePeriods } = useApp();
   const [isOpenAddEntry, setIsOpenAddEntry] = useState<boolean>(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>(
     undefined
   );
-  const [dow, setDow] = useState<DOW>();
+  const [dow, setDow] = useState<DOW | undefined>();
   const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+
+  const reset = () => {
+    setIsOpenAddEntry(false);
+    setDow(undefined);
+    setSelectedPeriods([]);
+    setSelectedTeacher(undefined);
+  };
 
   const handleMultiSelectChange = (
     event: SelectChangeEvent<typeof selectedPeriods>
@@ -100,6 +93,15 @@ const SubstitutionSchedule = () => {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
+    updateFreePeriods([
+      'add',
+      {
+        day: dow,
+        periods: selectedPeriods,
+        teacher: selectedTeacher,
+      } as FreePeriod,
+    ]);
+    reset();
   };
 
   return (
@@ -108,46 +110,56 @@ const SubstitutionSchedule = () => {
         <Table sx={{ minWidth: 700 }} aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell>Day</StyledTableCell>
-              <StyledTableCell align="center">1</StyledTableCell>
-              <StyledTableCell align="center">2</StyledTableCell>
-              <StyledTableCell align="center">3</StyledTableCell>
-              <StyledTableCell align="center">4</StyledTableCell>
-              <StyledTableCell align="center">5</StyledTableCell>
-              <StyledTableCell align="center">6</StyledTableCell>
-              <StyledTableCell align="center">7</StyledTableCell>
-              <StyledTableCell align="center">8</StyledTableCell>
-              <StyledTableCell align="center">9</StyledTableCell>
-              <StyledTableCell align="center">10</StyledTableCell>
-              <StyledTableCell align="center">11</StyledTableCell>
+              <StyledTableCell sx={{ minWidth: 120 }}>Day</StyledTableCell>
+              {periodNumbers.map((n) => (
+                <StyledTableCell align="center" sx={{ minWidth: 120 }}>
+                  {n}
+                </StyledTableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <StyledTableRow key={row.name} className="table-row">
-                <StyledTableCell component="th" scope="row">
-                  {row.name}{' '}
+            {days.map((day) => (
+              <StyledTableRow key={day} className="table-row">
+                <StyledTableCell
+                  component="th"
+                  scope="row"
+                  sx={{ minWidth: 120 }}
+                >
+                  {day}{' '}
                   <IconButton
                     className="actions"
                     onClick={() => {
-                      setDow(row.name as DOW);
+                      setDow(day as DOW);
                       setIsOpenAddEntry(true);
                     }}
                   >
                     <Add />
                   </IconButton>
                 </StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
-                <StyledTableCell align="right"></StyledTableCell>
+                {periodNumbers.map((pn) => {
+                  return (
+                    <StyledTableCell
+                      align="center"
+                      sx={{ minWidth: 120, border: '1px solid lightgray' }}
+                    >
+                      {freePeriods
+                        .filter(
+                          (fp) =>
+                            fp && fp.day === day && fp.periods.includes(pn)
+                        )
+                        .map(
+                          (data) =>
+                            data && (
+                              <Chip
+                                label={`${data.teacher.initial} ${data.teacher.lastName}`}
+                                sx={{ margin: '2px' }}
+                              />
+                            )
+                        )}
+                    </StyledTableCell>
+                  );
+                })}
               </StyledTableRow>
             ))}
           </TableBody>
