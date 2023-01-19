@@ -19,6 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import { DOW, FreePeriod, Teacher } from 'renderer/Types';
+import { ModalMode, modalStyle } from 'renderer/lib';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
 import { Add } from '@mui/icons-material';
@@ -28,7 +29,6 @@ import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import { modalStyle } from 'renderer/lib';
 import { styled } from '@mui/material/styles';
 import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
@@ -65,6 +65,10 @@ const SubstitutionSchedule = () => {
   );
   const [dow, setDow] = useState<DOW | undefined>();
   const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+  const [mode, setMode] = useState<ModalMode>(ModalMode.ADD);
+  const [selectedFreePeriod, setSelectedFreePeriod] = useState<
+    FreePeriod | undefined
+  >();
 
   const reset = () => {
     setIsOpenAddEntry(false);
@@ -88,20 +92,41 @@ const SubstitutionSchedule = () => {
   const resetFromModalDismiss = () => {
     setSelectedTeacher(undefined);
     setSelectedPeriods([]);
+    setSelectedFreePeriod(undefined);
     setIsOpenAddEntry(false);
   };
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    updateFreePeriods([
-      'add',
-      {
-        day: dow,
-        periods: selectedPeriods,
-        teacher: selectedTeacher,
-      } as FreePeriod,
-    ]);
+    if (mode === ModalMode.ADD) {
+      updateFreePeriods([
+        'add',
+        {
+          day: dow,
+          periods: selectedPeriods,
+          teacher: selectedTeacher,
+        } as FreePeriod,
+      ]);
+    } else if (mode === ModalMode.EDIT) {
+      updateFreePeriods([
+        'edit',
+        {
+          day: dow,
+          periods: selectedPeriods,
+          teacher: selectedTeacher,
+        } as FreePeriod,
+      ]);
+    }
     reset();
+  };
+
+  const handleClickEdit = (data: FreePeriod) => {
+    setMode(ModalMode.EDIT);
+    setIsOpenAddEntry(true);
+    setSelectedFreePeriod(data);
+    setDow(data.day);
+    setSelectedTeacher(data.teacher);
+    setSelectedPeriods(data.periods);
   };
 
   return (
@@ -110,7 +135,7 @@ const SubstitutionSchedule = () => {
         <Table sx={{ minWidth: 700 }} aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ minWidth: 120 }}>Day</StyledTableCell>
+              <StyledTableCell sx={{ minWidth: 250 }}>Day</StyledTableCell>
               {periodNumbers.map((n) => (
                 <StyledTableCell align="center" sx={{ minWidth: 120 }}>
                   {n}
@@ -131,6 +156,7 @@ const SubstitutionSchedule = () => {
                     className="actions"
                     onClick={() => {
                       setDow(day as DOW);
+                      setMode(ModalMode.ADD);
                       setIsOpenAddEntry(true);
                     }}
                   >
@@ -140,6 +166,7 @@ const SubstitutionSchedule = () => {
                 {periodNumbers.map((pn) => {
                   return (
                     <StyledTableCell
+                      key={pn}
                       align="center"
                       sx={{ minWidth: 120, border: '1px solid lightgray' }}
                     >
@@ -152,6 +179,8 @@ const SubstitutionSchedule = () => {
                           (data) =>
                             data && (
                               <Chip
+                                key={`${data.day}-${data.teacher?.key}`}
+                                onClick={() => handleClickEdit(data)}
                                 label={`${data.teacher.initial} ${data.teacher.lastName}`}
                                 sx={{ margin: '2px' }}
                               />
@@ -186,7 +215,8 @@ const SubstitutionSchedule = () => {
                 variant="h6"
                 component="h2"
               >
-                Capture Free Period for a Teacher on {dow}.
+                {mode === ModalMode.ADD ? 'Capture' : 'Update'} Free Period for
+                a Teacher on {dow}.
               </Typography>
               <Typography id="transition-modal-description" sx={{ mt: 2 }}>
                 Select the teacher, day of the week and free period.
@@ -217,6 +247,7 @@ const SubstitutionSchedule = () => {
                         labelId="demo-simple-select-standard-label"
                         id="demo-simple-select-standard"
                         value={selectedTeacher?.key}
+                        disabled={mode === ModalMode.EDIT}
                         onChange={(event: SelectChangeEvent) => {
                           const key = event?.target?.value;
                           teachers.find(
@@ -227,12 +258,21 @@ const SubstitutionSchedule = () => {
                         required
                         sx={{ my: 1 }}
                       >
-                        {teachers.map((t) => (
-                          <MenuItem
-                            key={t.key}
-                            value={t.key}
-                          >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                        ))}
+                        {teachers.map(
+                          (t) =>
+                            t &&
+                            ((mode === ModalMode.ADD &&
+                              !freePeriods.find(
+                                (fp) =>
+                                  fp.teacher.key === t.key && fp.day === dow
+                              )) ||
+                              mode === ModalMode.EDIT) && (
+                              <MenuItem
+                                key={t.key}
+                                value={t.key}
+                              >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                            )
+                        )}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -296,7 +336,7 @@ const SubstitutionSchedule = () => {
                 }}
               >
                 <Button variant="contained" type="submit">
-                  Add
+                  {mode === ModalMode.ADD ? 'Add' : 'Update'}
                 </Button>
                 <Button onClick={resetFromModalDismiss}>Cancel</Button>
               </Box>

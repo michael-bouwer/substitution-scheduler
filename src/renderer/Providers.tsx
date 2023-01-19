@@ -89,7 +89,7 @@ const reducerFreePeriods = (
             ...withoutEntry,
             editEntry,
           ]);
-          return [...state, data];
+          return [...withoutEntry, data];
         }
       }
       return state;
