@@ -14,6 +14,7 @@ export enum StorageKeys {
   TEACHERS = 'teachers',
   SUBJECTS = 'subjects',
   FREE_PERIODS = 'free-periods',
+  TIMETABLE = 'timetable',
 }
 
 export enum ModalMode {

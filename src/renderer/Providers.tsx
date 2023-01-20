@@ -6,7 +6,7 @@ import {
   useReducer,
   useState,
 } from 'react';
-import { FreePeriod, Subject, Teacher } from './Types';
+import { FreePeriod, Subject, Teacher, Timetable } from './Types';
 
 import React from 'react';
 import { StorageKeys } from './lib';
@@ -30,6 +30,9 @@ interface AppContext {
   freePeriods: FreePeriod[];
   updateFreePeriods: Dispatch<FreePeriodAction>;
 
+  timetable: Timetable[];
+  updateTimetable: Dispatch<TimetableAction>;
+
   clearAllData: () => void;
 }
 
@@ -47,6 +50,9 @@ const appContextValues: AppContext = {
   freePeriods: [],
   updateFreePeriods: () => [],
 
+  timetable: [],
+  updateTimetable: () => {},
+
   clearAllData: () => {},
 };
 
@@ -57,6 +63,7 @@ type FreePeriodAction = [
   CommonActions,
   (FreePeriod | FreePeriod[] | undefined)?
 ];
+type TimetableAction = [CommonActions, (Timetable | Timetable[] | undefined)?];
 
 const reducerFreePeriods = (
   state: FreePeriod[],
@@ -107,12 +114,72 @@ const reducerFreePeriods = (
   }
 };
 
+const reducerTimetable = (
+  state: Timetable[],
+  [action, data]: TimetableAction
+) => {
+  switch (action) {
+    case 'init':
+      if (data instanceof Array) return data;
+      return state;
+    case 'add':
+      if (data && !(data instanceof Array)) {
+        localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
+          ...state,
+          data,
+        ]);
+        return [...state, data];
+      }
+      return state;
+    case 'edit':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) =>
+            e.day === data.day &&
+            e.teacher.key === data.teacher.key &&
+            e.period === data.period
+        );
+        if (editEntry) {
+          editEntry.substitue = data.substitue;
+          editEntry.subject = data.subject;
+          const withoutEntry = state.filter(
+            (e) =>
+              e.day !== data.day ||
+              e.teacher.key !== data.teacher.key ||
+              e.period !== data.period
+          );
+          localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, data];
+        }
+      }
+      return state;
+    case 'delete':
+      if (data && !(data instanceof Array)) {
+        const filtered = state.filter(
+          (e) =>
+            e.day !== data.day ||
+            e.teacher.key !== data.teacher.key ||
+            e.period !== data.period
+        );
+        localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, filtered);
+        return filtered;
+      }
+      return state;
+    case 'reset':
+      return [];
+  }
+};
+
 const AppProvider = (props: Props) => {
   localforage.createInstance({ name: 'teachers' });
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [freePeriods, updateFreePeriods] = useReducer(reducerFreePeriods, []);
+  const [timetable, updateTimetable] = useReducer(reducerTimetable, []);
 
   useEffect(() => {
     (async () => {
@@ -141,7 +208,16 @@ const AppProvider = (props: Props) => {
     })();
   }, []);
 
-  // CRUD Teachers
+  useEffect(() => {
+    (async () => {
+      const _timetable = await localforage.getItem<Timetable[]>(
+        StorageKeys.TIMETABLE
+      );
+      if (_timetable?.length) updateTimetable(['init', _timetable]);
+    })();
+  }, []);
+
+  // CRUD Teachers - these should really be reducers but anyways...
   const addTeacher = (teacher: Teacher) => {
     if (!teachers.find((t) => t && t.key === teacher.key)) {
       const newTeachers = [...teachers, teacher];
@@ -195,24 +271,12 @@ const AppProvider = (props: Props) => {
   };
   // ----------------------------------------------
 
-  // CRUD Free Periods
-  const addFreePeriod = async (freePeriod: FreePeriod) => {
-    localforage
-      .setItem<FreePeriod[]>(StorageKeys.FREE_PERIODS, [
-        ...freePeriods,
-        freePeriod,
-      ])
-      .then(() => updateFreePeriods(['add', freePeriod]));
-  };
-  const editFreePeriod = (freePeriod: FreePeriod) => {};
-  const deleteFreePeriod = (freePeriod: FreePeriod) => {};
-  // ----------------------------------------------
-
   const clearAllData = () => {
     localforage.clear();
     setTeachers([]);
     setSubjects([]);
     updateFreePeriods(['reset']);
+    updateTimetable(['reset']);
   };
 
   const value = {
@@ -226,6 +290,8 @@ const AppProvider = (props: Props) => {
     deleteSubject,
     freePeriods,
     updateFreePeriods,
+    timetable,
+    updateTimetable,
     clearAllData,
   };
 

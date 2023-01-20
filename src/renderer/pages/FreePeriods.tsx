@@ -57,7 +57,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const periodNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
 
-const SubstitutionSchedule = () => {
+const FreePeriods = () => {
   const { teachers, freePeriods, updateFreePeriods } = useApp();
   const [isOpenAddEntry, setIsOpenAddEntry] = useState<boolean>(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>(
@@ -348,4 +348,4 @@ const SubstitutionSchedule = () => {
   );
 };
 
-export default SubstitutionSchedule;
+export default FreePeriods;

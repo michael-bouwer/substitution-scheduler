@@ -21,3 +21,11 @@ export interface FreePeriod {
 }
 
 export type DOW = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
+
+export interface Timetable {
+  day: DOW;
+  teacher: Teacher;
+  period: string;
+  substitue: Teacher;
+  subject: Subject;
+}
