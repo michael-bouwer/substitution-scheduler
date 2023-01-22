@@ -130,221 +130,223 @@ const FreePeriods = () => {
   };
 
   return (
-    <Box>
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 700 }} aria-label="customized table">
-          <TableHead>
-            <TableRow>
-              <StyledTableCell sx={{ minWidth: 250 }}>Day</StyledTableCell>
-              {periodNumbers.map((n) => (
-                <StyledTableCell align="center" sx={{ minWidth: 120 }}>
-                  {n}
-                </StyledTableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {days.map((day) => (
-              <StyledTableRow key={day} className="table-row">
-                <StyledTableCell
-                  component="th"
-                  scope="row"
-                  sx={{ minWidth: 120 }}
-                >
-                  {day}{' '}
-                  <IconButton
-                    className="actions"
-                    onClick={() => {
-                      setDow(day as DOW);
-                      setMode(ModalMode.ADD);
-                      setIsOpenAddEntry(true);
-                    }}
+    <Paper elevation={12}>
+      <Box>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 700 }} aria-label="customized table">
+            <TableHead>
+              <TableRow>
+                <StyledTableCell sx={{ minWidth: 250 }}>Day</StyledTableCell>
+                {periodNumbers.map((n) => (
+                  <StyledTableCell align="center" sx={{ minWidth: 120 }}>
+                    {n}
+                  </StyledTableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {days.map((day) => (
+                <StyledTableRow key={day} className="table-row">
+                  <StyledTableCell
+                    component="th"
+                    scope="row"
+                    sx={{ minWidth: 120 }}
                   >
-                    <Add />
-                  </IconButton>
-                </StyledTableCell>
-                {periodNumbers.map((pn) => {
-                  return (
-                    <StyledTableCell
-                      key={pn}
-                      align="center"
-                      sx={{ minWidth: 120, border: '1px solid lightgray' }}
+                    {day}{' '}
+                    <IconButton
+                      className="actions"
+                      onClick={() => {
+                        setDow(day as DOW);
+                        setMode(ModalMode.ADD);
+                        setIsOpenAddEntry(true);
+                      }}
                     >
-                      {freePeriods
-                        .filter(
-                          (fp) =>
-                            fp && fp.day === day && fp.periods.includes(pn)
-                        )
-                        .map(
-                          (data) =>
-                            data && (
-                              <Chip
-                                key={`${data.day}-${data.teacher?.key}`}
-                                onClick={() => handleClickEdit(data)}
-                                label={`${data.teacher.initial} ${data.teacher.lastName}`}
-                                sx={{ margin: '2px' }}
-                              />
-                            )
-                        )}
-                    </StyledTableCell>
-                  );
-                })}
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                      <Add />
+                    </IconButton>
+                  </StyledTableCell>
+                  {periodNumbers.map((pn) => {
+                    return (
+                      <StyledTableCell
+                        key={pn}
+                        align="center"
+                        sx={{ minWidth: 120, border: '1px solid lightgray' }}
+                      >
+                        {freePeriods
+                          .filter(
+                            (fp) =>
+                              fp && fp.day === day && fp.periods.includes(pn)
+                          )
+                          .map(
+                            (data) =>
+                              data && (
+                                <Chip
+                                  key={`${data.day}-${data.teacher?.key}`}
+                                  onClick={() => handleClickEdit(data)}
+                                  label={`${data.teacher.initial} ${data.teacher.lastName}`}
+                                  sx={{ margin: '2px' }}
+                                />
+                              )
+                          )}
+                      </StyledTableCell>
+                    );
+                  })}
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      {/* Add an entry */}
-      <Modal
-        aria-labelledby="transition-modal-title"
-        aria-describedby="transition-modal-description"
-        open={isOpenAddEntry}
-        onClose={resetFromModalDismiss}
-        closeAfterTransition
-        BackdropComponent={Backdrop}
-        BackdropProps={{
-          timeout: 500,
-        }}
-      >
-        <Fade in={isOpenAddEntry}>
-          <Box sx={modalStyle}>
-            <>
-              <Typography
-                id="transition-modal-title"
-                variant="h6"
-                component="h2"
-              >
-                {mode === ModalMode.ADD ? 'Capture' : 'Update'} Free Period for
-                a Teacher on {dow}.
-              </Typography>
-              <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-                Select the teacher, day of the week and free period.
-              </Typography>
-            </>
-            <form onSubmit={handleSubmit}>
-              <Box
-                sx={{
-                  my: 4,
-                }}
-              >
-                <Grid container alignItems={'center'} direction="row">
-                  <Grid item xs={6}>
-                    <FormControl
-                      variant="standard"
-                      size="small"
-                      sx={{
-                        m: 1,
-                        minWidth: 120,
-                        margin: 'unset',
-                        width: '90%',
-                      }}
-                    >
-                      <InputLabel id="demo-simple-select-standard-label">
-                        Teacher
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        value={selectedTeacher?.key}
-                        disabled={mode === ModalMode.EDIT}
-                        onChange={(event: SelectChangeEvent) => {
-                          const key = event?.target?.value;
-                          teachers.find(
-                            (t) => t && t.key === key && setSelectedTeacher(t)
-                          );
+        {/* Add an entry */}
+        <Modal
+          aria-labelledby="transition-modal-title"
+          aria-describedby="transition-modal-description"
+          open={isOpenAddEntry}
+          onClose={resetFromModalDismiss}
+          closeAfterTransition
+          BackdropComponent={Backdrop}
+          BackdropProps={{
+            timeout: 500,
+          }}
+        >
+          <Fade in={isOpenAddEntry}>
+            <Box sx={modalStyle}>
+              <>
+                <Typography
+                  id="transition-modal-title"
+                  variant="h6"
+                  component="h2"
+                >
+                  {mode === ModalMode.ADD ? 'Capture' : 'Update'} Free Period
+                  for a Teacher on {dow}.
+                </Typography>
+                <Typography id="transition-modal-description" sx={{ mt: 2 }}>
+                  Select the teacher, day of the week and free period.
+                </Typography>
+              </>
+              <form onSubmit={handleSubmit}>
+                <Box
+                  sx={{
+                    my: 4,
+                  }}
+                >
+                  <Grid container alignItems={'center'} direction="row">
+                    <Grid item xs={6}>
+                      <FormControl
+                        variant="standard"
+                        size="small"
+                        sx={{
+                          m: 1,
+                          minWidth: 120,
+                          margin: 'unset',
+                          width: '90%',
                         }}
-                        label="Teacher"
-                        required
-                        sx={{ my: 1 }}
                       >
-                        {teachers.map(
-                          (t) =>
-                            t &&
-                            ((mode === ModalMode.ADD &&
-                              !freePeriods.find(
-                                (fp) =>
-                                  fp.teacher.key === t.key && fp.day === dow
-                              )) ||
-                              mode === ModalMode.EDIT) && (
-                              <MenuItem
-                                key={t.key}
-                                value={t.key}
-                              >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                            )
-                        )}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControl
-                      variant="standard"
-                      size="small"
-                      sx={{
-                        m: 1,
-                        minWidth: 120,
-                        margin: 'unset',
-                        width: '90%',
-                      }}
-                    >
-                      <InputLabel id="demo-simple-select-standard-label">
-                        Period(s)
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        value={selectedPeriods}
-                        onChange={handleMultiSelectChange}
-                        label="Teacher"
-                        required
-                        multiple
-                        sx={{ my: 1 }}
-                        renderValue={(selected) => selected.join(', ')}
+                        <InputLabel id="demo-simple-select-standard-label">
+                          Teacher
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-standard-label"
+                          id="demo-simple-select-standard"
+                          value={selectedTeacher?.key}
+                          disabled={mode === ModalMode.EDIT}
+                          onChange={(event: SelectChangeEvent) => {
+                            const key = event?.target?.value;
+                            teachers.find(
+                              (t) => t && t.key === key && setSelectedTeacher(t)
+                            );
+                          }}
+                          label="Teacher"
+                          required
+                          sx={{ my: 1 }}
+                        >
+                          {teachers.map(
+                            (t) =>
+                              t &&
+                              ((mode === ModalMode.ADD &&
+                                !freePeriods.find(
+                                  (fp) =>
+                                    fp.teacher.key === t.key && fp.day === dow
+                                )) ||
+                                mode === ModalMode.EDIT) && (
+                                <MenuItem
+                                  key={t.key}
+                                  value={t.key}
+                                >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                              )
+                          )}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl
+                        variant="standard"
+                        size="small"
+                        sx={{
+                          m: 1,
+                          minWidth: 120,
+                          margin: 'unset',
+                          width: '90%',
+                        }}
                       >
-                        {[
-                          '1',
-                          '2',
-                          '3',
-                          '4',
-                          '5',
-                          '6',
-                          '7',
-                          '8',
-                          '9',
-                          '10',
-                          '11',
-                        ].map((p) => (
-                          <MenuItem key={p} value={p}>
-                            <Checkbox
-                              checked={selectedPeriods.indexOf(p) > -1}
-                            />
-                            <ListItemText primary={p} />
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        <InputLabel id="demo-simple-select-standard-label">
+                          Period(s)
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-standard-label"
+                          id="demo-simple-select-standard"
+                          value={selectedPeriods}
+                          onChange={handleMultiSelectChange}
+                          label="Teacher"
+                          required
+                          multiple
+                          sx={{ my: 1 }}
+                          renderValue={(selected) => selected.join(', ')}
+                        >
+                          {[
+                            '1',
+                            '2',
+                            '3',
+                            '4',
+                            '5',
+                            '6',
+                            '7',
+                            '8',
+                            '9',
+                            '10',
+                            '11',
+                          ].map((p) => (
+                            <MenuItem key={p} value={p}>
+                              <Checkbox
+                                checked={selectedPeriods.indexOf(p) > -1}
+                              />
+                              <ListItemText primary={p} />
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </Box>
-              <Box
-                sx={{
-                  position: 'relative',
-                  float: 'right',
-                  display: 'flex',
-                  marginTop: '16px',
-                  columnGap: '16px',
-                }}
-              >
-                <Button variant="contained" type="submit">
-                  {mode === ModalMode.ADD ? 'Add' : 'Update'}
-                </Button>
-                <Button onClick={resetFromModalDismiss}>Cancel</Button>
-              </Box>
-            </form>
-          </Box>
-        </Fade>
-      </Modal>
-    </Box>
+                </Box>
+                <Box
+                  sx={{
+                    position: 'relative',
+                    float: 'right',
+                    display: 'flex',
+                    marginTop: '16px',
+                    columnGap: '16px',
+                  }}
+                >
+                  <Button variant="contained" type="submit">
+                    {mode === ModalMode.ADD ? 'Add' : 'Update'}
+                  </Button>
+                  <Button onClick={resetFromModalDismiss}>Cancel</Button>
+                </Box>
+              </form>
+            </Box>
+          </Fade>
+        </Modal>
+      </Box>
+    </Paper>
   );
 };
 

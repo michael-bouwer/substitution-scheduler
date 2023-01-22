@@ -28,4 +28,5 @@ export interface Timetable {
   period: string;
   substitue: Teacher;
   subject: Subject;
+  isAbsent: boolean
 }
