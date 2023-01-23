@@ -19,7 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import { DOW, FreePeriod, Teacher } from 'renderer/Types';
-import { ModalMode, modalStyle } from 'renderer/lib';
+import { ModalMode, days, modalStyle, periodNumbers } from 'renderer/lib';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
 import { Add } from '@mui/icons-material';
@@ -53,9 +53,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   //   border: 0,
   // },
 }));
-
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-const periodNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
 
 const FreePeriods = () => {
   const { teachers, freePeriods, updateFreePeriods } = useApp();

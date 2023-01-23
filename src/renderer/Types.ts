@@ -28,5 +28,10 @@ export interface Timetable {
   period: string;
   substitue: Teacher;
   subject: Subject;
-  isAbsent: boolean
+}
+
+export interface Absentee {
+  day: DOW
+  teacher: Teacher
+  periods: string[]
 }

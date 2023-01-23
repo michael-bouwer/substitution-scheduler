@@ -1,3 +1,4 @@
+import { Absentee, FreePeriod, Subject, Teacher, Timetable } from './Types';
 import {
   Dispatch,
   createContext,
@@ -6,7 +7,6 @@ import {
   useReducer,
   useState,
 } from 'react';
-import { FreePeriod, Subject, Teacher, Timetable } from './Types';
 
 import React from 'react';
 import { StorageKeys } from './lib';
@@ -33,6 +33,9 @@ interface AppContext {
   timetable: Timetable[];
   updateTimetable: Dispatch<TimetableAction>;
 
+  absentees: Absentee[];
+  updateAbsentees: Dispatch<AbsenteeAction>;
+
   clearAllData: () => void;
 }
 
@@ -53,6 +56,9 @@ const appContextValues: AppContext = {
   timetable: [],
   updateTimetable: () => {},
 
+  absentees: [],
+  updateAbsentees: () => {},
+
   clearAllData: () => {},
 };
 
@@ -64,6 +70,7 @@ type FreePeriodAction = [
   (FreePeriod | FreePeriod[] | undefined)?
 ];
 type TimetableAction = [CommonActions, (Timetable | Timetable[] | undefined)?];
+type AbsenteeAction = [CommonActions, Absentee | Absentee[] | undefined];
 
 const reducerFreePeriods = (
   state: FreePeriod[],
@@ -96,7 +103,7 @@ const reducerFreePeriods = (
             ...withoutEntry,
             editEntry,
           ]);
-          return [...withoutEntry, data];
+          return [...withoutEntry, editEntry];
         }
       }
       return state;
@@ -152,7 +159,7 @@ const reducerTimetable = (
             ...withoutEntry,
             editEntry,
           ]);
-          return [...withoutEntry, data];
+          return [...withoutEntry, editEntry];
         }
       }
       return state;
@@ -173,6 +180,52 @@ const reducerTimetable = (
   }
 };
 
+const reducerAbsentee = (state: Absentee[], [action, data]: AbsenteeAction) => {
+  switch (action) {
+    case 'init':
+      if (data instanceof Array) return data;
+      return state;
+    case 'add':
+      if (data && !(data instanceof Array)) {
+        localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, [
+          ...state,
+          data,
+        ]);
+        return [...state, data];
+      }
+      return state;
+    case 'edit':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) => e.day === data.day && e.teacher.key === data.teacher.key
+        );
+        if (editEntry) {
+          editEntry.periods = data.periods;
+          const withoutEntry = state.filter(
+            (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
+          );
+          localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, editEntry];
+        }
+      }
+      return state;
+    case 'delete':
+      if (data && !(data instanceof Array)) {
+        const filtered = state.filter(
+          (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
+        );
+        localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, filtered);
+        return filtered;
+      }
+      return state;
+    case 'reset':
+      return [];
+  }
+};
+
 const AppProvider = (props: Props) => {
   localforage.createInstance({ name: 'teachers' });
 
@@ -180,6 +233,7 @@ const AppProvider = (props: Props) => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [freePeriods, updateFreePeriods] = useReducer(reducerFreePeriods, []);
   const [timetable, updateTimetable] = useReducer(reducerTimetable, []);
+  const [absentees, updateAbsentees] = useReducer(reducerAbsentee, []);
 
   useEffect(() => {
     (async () => {
@@ -292,6 +346,8 @@ const AppProvider = (props: Props) => {
     updateFreePeriods,
     timetable,
     updateTimetable,
+    absentees,
+    updateAbsentees,
     clearAllData,
   };
 

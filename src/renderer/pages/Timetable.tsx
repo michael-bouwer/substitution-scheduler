@@ -27,7 +27,7 @@ import {
   Typography,
 } from '@mui/material';
 import { DOW, FreePeriod, Subject, Teacher, Timetable } from 'renderer/Types';
-import { modalStyle } from 'renderer/lib';
+import { days, modalStyle, periodNumbers } from 'renderer/lib';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
 import { Add, Delete, Print } from '@mui/icons-material';
@@ -40,6 +40,7 @@ import TableRow from '@mui/material/TableRow';
 import { styled } from '@mui/material/styles';
 import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
+import Absentees from 'renderer/components/Absentees';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -61,9 +62,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   //   border: 0,
   // },
 }));
-
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-const periodNumbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
 
 const Timetable = () => {
   const { teachers, timetable, updateTimetable, subjects } = useApp();
@@ -127,12 +125,14 @@ const Timetable = () => {
 
   return (
     <Box>
+      <Absentees />
       <Paper
         elevation={1}
         sx={{
           p: 2,
           px: 2,
           mb: 1,
+          mt: 4,
         }}
       >
         <Grid container alignItems={'center'} direction="row" gap={6}>
