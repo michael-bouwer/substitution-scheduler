@@ -1,6 +1,5 @@
 import './Shared.scss';
-
-import * as React from 'react';
+import { ipcRenderer } from 'electron';
 
 import {
   Backdrop,
@@ -126,6 +125,7 @@ const Timetable = () => {
 
   const handleAssign = (e: any) => {
     e.preventDefault();
+    if (selectedTimetable?.substitute?.key === selectedSubstitute?.key) return;
     updateTimetable([
       'edit',
       {
@@ -149,6 +149,18 @@ const Timetable = () => {
         } as Timetable,
       ]);
     }
+    reset();
+  };
+
+  const handleUnassign = () => {
+    if (selectedTimetable?.substitute?.key)
+      updateTimetable([
+        'edit',
+        {
+          ...selectedTimetable,
+          substitute: undefined,
+        } as Timetable,
+      ]);
     reset();
   };
 
@@ -240,7 +252,22 @@ const Timetable = () => {
             </FormControl>
           </Grid>
           <Grid item>
-            <Button startIcon={<Print />} variant="contained">
+            <Button
+              startIcon={<Print />}
+              variant="contained"
+              id="print-to-pdf"
+              onClick={() => {
+                let element = document.getElementById('printable-area');
+                let range = new Range();
+                if (element) {
+                  range.setStart(element, 0);
+                  range.setEndAfter(element);
+                  document.getSelection()?.removeAllRanges();
+                  document.getSelection()?.addRange(range);
+                  ipcRenderer.send('print-to-pdf');
+                }
+              }}
+            >
               Print Timetable
             </Button>
           </Grid>
@@ -248,7 +275,7 @@ const Timetable = () => {
       </Paper>
       <Paper elevation={12}>
         <Box>
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} id="printable-area">
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
@@ -609,7 +636,10 @@ const Timetable = () => {
                           <Select
                             labelId="demo-simple-select-standard-label"
                             id="demo-simple-select-standard"
-                            value={selectedSubstitute?.key}
+                            value={
+                              selectedSubstitute?.key ||
+                              selectedTimetable?.substitute?.key
+                            }
                             onChange={(event: SelectChangeEvent) => {
                               const key = event?.target?.value;
                               teachers.find(
@@ -627,13 +657,13 @@ const Timetable = () => {
                                 fp.day === selectedTimetable?.day &&
                                 !fp.isAbsent &&
                                 fp.periods.includes(selectedTimetable.period) &&
-                                !timetable.find(
-                                  (t) =>
-                                    t.day === selectedTimetable.day &&
-                                    t.period === selectedTimetable.period &&
-                                    t.substitute &&
-                                    t.substitute.key === fp.teacher.key
-                                ) &&
+                                // !timetable.find(
+                                //   (t) =>
+                                //     t.day === selectedTimetable.day &&
+                                //     t.period === selectedTimetable.period &&
+                                //     t.substitute &&
+                                //     t.substitute.key === fp.teacher.key
+                                // ) &&
                                 fp.teacher.key !==
                                   selectedTimetable.teacher.key && (
                                   <MenuItem
@@ -656,6 +686,11 @@ const Timetable = () => {
                       columnGap: '16px',
                     }}
                   >
+                    {selectedTimetable?.substitute && (
+                      <Button sx={{ float: 'left' }} onClick={handleUnassign}>
+                        Unassign Substitute
+                      </Button>
+                    )}
                     <Button variant="contained" type="submit">
                       Assign
                     </Button>

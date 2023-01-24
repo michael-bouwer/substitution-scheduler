@@ -27,7 +27,7 @@ export interface Timetable {
   day: DOW;
   teacher: Teacher;
   period: string;
-  substitute: Teacher;
+  substitute: Teacher | undefined;
   subject: Subject;
   isAbsent: boolean;
 }

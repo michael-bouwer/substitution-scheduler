@@ -3,7 +3,9 @@
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
 
 import { autoUpdater } from 'electron-updater';
+import fs from 'fs';
 import log from 'electron-log';
+import os from 'os';
 /**
  * This module executes inside of electron's main process. You can start
  * electron renderer process from here and communicate with the other processes
@@ -25,10 +27,16 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+ipcMain.on('print-to-pdf', async (event, content) => {
+  const pdfPath = path.join(os.tmpdir(), 'timetable.pdf');
+  const win = BrowserWindow.fromWebContents(event.sender);
+
+  win?.webContents.printToPDF({ landscape: true, printSelectionOnly: true, marginsType: 1 }).then((data) => {
+    fs.writeFile(pdfPath, data, {}, () => {
+      shell.openExternal('file://' + pdfPath);
+      event.sender.send('wrote-pdf', pdfPath);
+    });
+  });
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -75,9 +83,8 @@ const createWindow = async () => {
     minHeight: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 

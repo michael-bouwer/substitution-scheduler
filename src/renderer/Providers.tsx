@@ -96,6 +96,8 @@ const reducerFreePeriods = (
         );
         if (editEntry) {
           editEntry.periods = data.periods;
+          editEntry.day = data.day;
+          editEntry.teacher = data.teacher;
           editEntry.isAbsent = data.isAbsent;
           const withoutEntry = state.filter(
             (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
@@ -149,12 +151,16 @@ const reducerTimetable = (
         );
         if (editEntry) {
           editEntry.substitute = data.substitute;
+          editEntry.teacher = {
+            ...data.teacher,
+            key: `${data.teacher.initial.toLowerCase()}-${data.teacher.firstName.toLowerCase()}-${data.teacher.lastName.toLowerCase()}`,
+          };
           editEntry.subject = data.subject;
           editEntry.isAbsent = data.isAbsent;
           const withoutEntry = state.filter(
             (e) =>
               e.day !== data.day ||
-              e.teacher.key !== data.teacher.key ||
+              e.teacher.key !== editEntry.teacher.key ||
               e.period !== data.period
           );
           localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
@@ -203,8 +209,13 @@ const reducerAbsentee = (state: Absentee[], [action, data]: AbsenteeAction) => {
         );
         if (editEntry) {
           editEntry.periods = data.periods;
+          editEntry.day = data.day;
+          editEntry.teacher = {
+            ...data.teacher,
+            key: `${data.teacher.initial.toLowerCase()}-${data.teacher.firstName.toLowerCase()}-${data.teacher.lastName.toLowerCase()}`,
+          };
           const withoutEntry = state.filter(
-            (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
+            (e) => e.day !== data.day || e.teacher.key !== editEntry.teacher.key
           );
           localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, [
             ...withoutEntry,
@@ -302,12 +313,48 @@ const AppProvider = (props: Props) => {
       });
       localforage.setItem(StorageKeys.TEACHERS, copy);
       setTeachers(copy);
+      timetable.forEach(
+        (t) =>
+          t &&
+          t.teacher.key === teacher.key &&
+          updateTimetable(['edit', { ...t, teacher }])
+      );
+      absentees.forEach(
+        (a) =>
+          a &&
+          a.teacher.key === teacher.key &&
+          updateAbsentees(['edit', { ...a, teacher }])
+      );
+      freePeriods.forEach(
+        (fp) =>
+          fp &&
+          fp.teacher.key === teacher.key &&
+          updateFreePeriods(['edit', { ...fp, teacher }])
+      );
     }
   };
   const deleteTeacher = (teacher: Teacher) => {
     const copy = teachers.filter((t) => t && t.key !== teacher.key);
     localforage.setItem(StorageKeys.TEACHERS, copy);
     setTeachers(copy);
+    timetable.forEach(
+      (t) =>
+        t &&
+        t.teacher.key === teacher.key &&
+        updateTimetable(['delete', { ...t, teacher }])
+    );
+    absentees.forEach(
+      (a) =>
+        a &&
+        a.teacher.key === teacher.key &&
+        updateAbsentees(['delete', { ...a, teacher }])
+    );
+    freePeriods.forEach(
+      (fp) =>
+        fp &&
+        fp.teacher.key === teacher.key &&
+        updateFreePeriods(['delete', { ...fp, teacher }])
+    );
   };
   // ----------------------------------------------
 
@@ -327,12 +374,21 @@ const AppProvider = (props: Props) => {
       });
       localforage.setItem(StorageKeys.SUBJECTS, copy);
       setSubjects(copy);
+      timetable.forEach(
+        (t) =>
+          t &&
+          t.subject.key === subject.key &&
+          updateTimetable(['edit', { ...t, subject }])
+      );
     }
   };
   const deleteSubject = (subject: Subject) => {
-    const copy = subjects.filter((s) => s && s.code !== subject.code);
+    const copy = subjects.filter((s) => s && s.key !== subject.key);
     localforage.setItem(StorageKeys.SUBJECTS, copy);
     setSubjects(copy);
+    timetable.forEach(
+      (t) => t.subject.key === subject.key && updateTimetable(['delete', t])
+    );
   };
   // ----------------------------------------------
 
