@@ -70,7 +70,7 @@ type FreePeriodAction = [
   (FreePeriod | FreePeriod[] | undefined)?
 ];
 type TimetableAction = [CommonActions, (Timetable | Timetable[] | undefined)?];
-type AbsenteeAction = [CommonActions, Absentee | Absentee[] | undefined];
+type AbsenteeAction = [CommonActions, (Absentee | Absentee[] | undefined)?];
 
 const reducerFreePeriods = (
   state: FreePeriod[],
@@ -397,6 +397,7 @@ const AppProvider = (props: Props) => {
     setSubjects([]);
     updateFreePeriods(['reset']);
     updateTimetable(['reset']);
+    updateAbsentees(['reset']);
   };
 
   const value = {

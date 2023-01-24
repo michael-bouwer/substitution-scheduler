@@ -165,6 +165,48 @@ const Timetable = () => {
     reset();
   };
 
+  type Extract = {
+    day: string;
+    period_1?: string;
+    period_2?: string;
+    period_3?: string;
+    period_4?: string;
+    period_5?: string;
+    period_6?: string;
+    period_7?: string;
+    period_8?: string;
+    period_9?: string;
+    period_10?: string;
+    period_11?: string;
+  };
+
+  const getDataForTimetableExtract = () => {
+    const data: Extract[] = [];
+    days.forEach((day) => {
+      const currentData: Extract = { day };
+      periodNumbers.forEach((pn) => {
+        const entriesForThisPeriod = timetable
+          .filter((t) => t.day === day && t.period === pn)
+          .map(
+            (t) =>
+              t &&
+              `${
+                t.isAbsent && t.substitute
+                  ? `${t.substitute.initial} ${t.substitute.lastName}`
+                  : `${t.teacher.initial} ${t.teacher.lastName}`
+              } (${t.subject?.code})`
+          )
+          .join('\r\n');
+        const obj = {
+          [`period_${pn}`]: entriesForThisPeriod,
+        };
+        Object.assign(currentData, obj);
+      });
+      data.push(currentData);
+    });
+    return data;
+  };
+
   return (
     <Box>
       <Absentees />
@@ -258,15 +300,6 @@ const Timetable = () => {
               variant="contained"
               id="save"
               onClick={() => {
-                // let element = document.getElementById('printable-area');
-                // let range = new Range();
-                // if (element) {
-                //   range.setStart(element, 0);
-                //   range.setEndAfter(element);
-                //   document.getSelection()?.removeAllRanges();
-                //   document.getSelection()?.addRange(range);
-                //   ipcRenderer.send('print-to-pdf', timetable);
-                // }
                 const settings = {
                   fileName: 'MySpreadsheet', // Name of the resulting spreadsheet
                   extraLength: 3, // A bigger number means that columns will be wider
@@ -274,36 +307,26 @@ const Timetable = () => {
                   writeOptions: {}, // Style options from https://docs.sheetjs.com/docs/api/write-options
                   RTL: false, // Display the columns from right-to-left (the default value is false)
                 };
+
+                const content = getDataForTimetableExtract();
                 const data: IJsonSheet[] = [
                   {
-                    sheet: 'Adults',
+                    sheet: 'Timetable',
                     columns: [
-                      { label: 'User', value: 'user' }, // Top level data
-                      { label: 'Age', value: 'age', format: '# "years"' }, // Custom format
-                      {
-                        label: 'Phone',
-                        value: (row: any) => row?.more?.phone ?? '',
-                      }, // Run functions
+                      { label: 'Day', value: 'day' }, // Top level data
+                      { label: 'Period 1', value: 'period_1' }, // Top level data
+                      { label: 'Period 2', value: 'period_2' }, // Top level data
+                      { label: 'Period 3', value: 'period_3' }, // Top level data
+                      { label: 'Period 4', value: 'period_4' }, // Top level data
+                      { label: 'Period 5', value: 'period_5' }, // Top level data
+                      { label: 'Period 6', value: 'period_6' }, // Top level data
+                      { label: 'Period 7', value: 'period_7' }, // Top level data
+                      { label: 'Period 8', value: 'period_8' }, // Top level data
+                      { label: 'Period 9', value: 'period_9' }, // Top level data
+                      { label: 'Period 10', value: 'period_10' }, // Top level data
+                      { label: 'Period 11', value: 'period_11' }, // Top level data
                     ],
-                    content: [
-                      { user: 'Andrea', age: 20, more: { phone: '11111111' } },
-                      { user: 'Luis', age: 21, more: { phone: '12345678' } },
-                    ],
-                  },
-                  {
-                    sheet: 'Children',
-                    columns: [
-                      { label: 'User', value: 'user' }, // Top level data
-                      { label: 'Age', value: 'age', format: '# "years"' }, // Custom format
-                      {
-                        label: 'Phone',
-                        value: (row: any) => row?.more?.phone ?? '',
-                      }, // Run functions
-                    ],
-                    content: [
-                      { user: 'Manuel', age: 16, more: { phone: '99999999' } },
-                      { user: 'Ana', age: 17, more: { phone: '87654321' } },
-                    ],
+                    content: content,
                   },
                 ];
                 xlsx(data, settings);
@@ -378,7 +401,11 @@ const Timetable = () => {
                                         ? 'success'
                                         : 'default'
                                     }
-                                    label={`${data.teacher.initial} ${data.teacher.lastName} (${data.subject?.code})`}
+                                    label={`${
+                                      data.isAbsent && data.substitute
+                                        ? `${data.substitute.initial} ${data.substitute.lastName}`
+                                        : `${data.teacher.initial} ${data.teacher.lastName}`
+                                    } (${data.subject?.code})`}
                                     deleteIcon={<Delete />}
                                     onClick={() => {
                                       if (data.isAbsent) {
@@ -697,13 +724,6 @@ const Timetable = () => {
                                 fp &&
                                 fp.day === selectedTimetable?.day &&
                                 fp.periods.includes(selectedTimetable.period) &&
-                                // !timetable.find(
-                                //   (t) =>
-                                //     t.day === selectedTimetable.day &&
-                                //     t.period === selectedTimetable.period &&
-                                //     t.substitute &&
-                                //     t.substitute.key === fp.teacher.key
-                                // ) &&
                                 fp.teacher.key !==
                                   selectedTimetable.teacher.key && (
                                   <MenuItem
