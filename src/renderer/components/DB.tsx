@@ -125,10 +125,6 @@ const DB = () => {
             allData.timetable = timetable;
 
             ipcRenderer.send('backup', allData);
-            setMessage(
-              'Backup has been saved to documents (see C:/users/CURRENT_USER/backup-xxx.json)'
-            );
-            setOpen(true);
           }}
         >
           Backup Current Data
@@ -226,16 +222,8 @@ const DB = () => {
         </Fade>
       </Modal>
 
-      <Snackbar
-        open={open}
-        autoHideDuration={4000}
-        onClose={() => setOpen(false)}
-      >
-        <Alert
-          onClose={() => setOpen(false)}
-          severity="success"
-          sx={{ width: '100%' }}
-        >
+      <Snackbar open={open} autoHideDuration={4000} onClose={() => setOpen(false)}>
+        <Alert onClose={() => setOpen(false)} severity="success" sx={{ width: '100%' }}>
           {message}
         </Alert>
       </Snackbar>
