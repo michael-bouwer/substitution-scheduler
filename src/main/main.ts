@@ -29,23 +29,15 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('print-to-pdf', async (event, content: Timetable[]) => {
-  const pdfPath = path.join(os.tmpdir(), 'timetable.pdf');
-  const win = BrowserWindow.fromWebContents(event.sender);
-
-  // win?.webContents.printToPDF({ landscape: true, printSelectionOnly: true, marginsType: 1, scaleFactor: 80 }).then((data) => {
-  //   fs.writeFile(pdfPath, data, {}, () => {
-  //     shell.openExternal('file://' + pdfPath);
-  //     event.sender.send('wrote-pdf', pdfPath);
-  //   });
-  // });
-  const settings = {
-    fileName: 'MySpreadsheet', // Name of the resulting spreadsheet
-    extraLength: 3, // A bigger number means that columns will be wider
-    writeMode: 'writeFile', // The available parameters are 'WriteFile' and 'write'. This setting is optional. Useful in such cases https://docs.sheetjs.com/docs/solutions/output#example-remote-file
-    writeOptions: {}, // Style options from https://docs.sheetjs.com/docs/api/write-options
-    RTL: true, // Display the columns from right-to-left (the default value is false)
-  };
+ipcMain.on('backup', async (event, content: any) => {
+  console.log(`${app.getPath('documents')}backup-${new Date().getMilliseconds()}.json`);
+  fs.writeFile(
+    `${app.getPath('documents')}backup-${new Date().getMilliseconds()}.json`,
+    JSON.stringify(content),
+    (error: any) => {
+      if (error) console.log(error);
+    }
+  );
 });
 
 if (process.env.NODE_ENV === 'production') {

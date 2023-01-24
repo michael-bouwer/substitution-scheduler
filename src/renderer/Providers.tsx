@@ -21,11 +21,13 @@ interface AppContext {
   addTeacher: (teacher: Teacher) => void;
   editTeacher: (teacher: Teacher) => void;
   deleteTeacher: (teacher: Teacher) => void;
+  setTeachers: Dispatch<React.SetStateAction<Teacher[]>>;
 
   subjects: Subject[];
   addSubject: (subject: Subject) => void;
   editSubject: (subject: Subject) => void;
   deleteSubject: (subject: Subject) => void;
+  setSubjects: Dispatch<React.SetStateAction<Subject[]>>;
 
   freePeriods: FreePeriod[];
   updateFreePeriods: Dispatch<FreePeriodAction>;
@@ -44,11 +46,13 @@ const appContextValues: AppContext = {
   addTeacher: () => {},
   editTeacher: () => {},
   deleteTeacher: () => {},
+  setTeachers: () => {},
 
   subjects: [],
   addSubject: () => {},
   editSubject: () => {},
   deleteSubject: () => {},
+  setSubjects: () => {},
 
   freePeriods: [],
   updateFreePeriods: () => [],
@@ -405,10 +409,12 @@ const AppProvider = (props: Props) => {
     addTeacher,
     editTeacher,
     deleteTeacher,
+    setTeachers,
     subjects,
     addSubject,
     editSubject,
     deleteSubject,
+    setSubjects,
     freePeriods,
     updateFreePeriods,
     timetable,
