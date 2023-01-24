@@ -189,7 +189,16 @@ const FreePeriods = () => {
                             (data) =>
                               data && (
                                 <Chip
-                                  color={data.isAbsent ? 'error' : 'default'}
+                                  color={
+                                    !!absentees.find(
+                                      (a) =>
+                                        a.day === day &&
+                                        a.teacher?.key === data.teacher?.key &&
+                                        a.periods.includes(pn)
+                                    )
+                                      ? 'error'
+                                      : 'default'
+                                  }
                                   key={`${data.day}-${data.teacher?.key}`}
                                   onClick={() => handleClickEdit(data)}
                                   label={`${data.teacher.initial} ${data.teacher.lastName}`}

@@ -26,7 +26,7 @@ import { DOW, FreePeriod, Subject, Teacher, Timetable } from 'renderer/Types';
 import { days, modalStyle, periodNumbers } from 'renderer/lib';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
-import { Add, Delete, Print } from '@mui/icons-material';
+import { Add, Delete, Print, Save } from '@mui/icons-material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -37,6 +37,7 @@ import { styled } from '@mui/material/styles';
 import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 import Absentees from 'renderer/components/Absentees';
+import xlsx, { IJsonSheet } from 'json-as-xlsx';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -253,22 +254,62 @@ const Timetable = () => {
           </Grid>
           <Grid item>
             <Button
-              startIcon={<Print />}
+              startIcon={<Save />}
               variant="contained"
-              id="print-to-pdf"
+              id="save"
               onClick={() => {
-                let element = document.getElementById('printable-area');
-                let range = new Range();
-                if (element) {
-                  range.setStart(element, 0);
-                  range.setEndAfter(element);
-                  document.getSelection()?.removeAllRanges();
-                  document.getSelection()?.addRange(range);
-                  ipcRenderer.send('print-to-pdf');
-                }
+                // let element = document.getElementById('printable-area');
+                // let range = new Range();
+                // if (element) {
+                //   range.setStart(element, 0);
+                //   range.setEndAfter(element);
+                //   document.getSelection()?.removeAllRanges();
+                //   document.getSelection()?.addRange(range);
+                //   ipcRenderer.send('print-to-pdf', timetable);
+                // }
+                const settings = {
+                  fileName: 'MySpreadsheet', // Name of the resulting spreadsheet
+                  extraLength: 3, // A bigger number means that columns will be wider
+                  writeMode: 'writeFile', // The available parameters are 'WriteFile' and 'write'. This setting is optional. Useful in such cases https://docs.sheetjs.com/docs/solutions/output#example-remote-file
+                  writeOptions: {}, // Style options from https://docs.sheetjs.com/docs/api/write-options
+                  RTL: false, // Display the columns from right-to-left (the default value is false)
+                };
+                const data: IJsonSheet[] = [
+                  {
+                    sheet: 'Adults',
+                    columns: [
+                      { label: 'User', value: 'user' }, // Top level data
+                      { label: 'Age', value: 'age', format: '# "years"' }, // Custom format
+                      {
+                        label: 'Phone',
+                        value: (row: any) => row?.more?.phone ?? '',
+                      }, // Run functions
+                    ],
+                    content: [
+                      { user: 'Andrea', age: 20, more: { phone: '11111111' } },
+                      { user: 'Luis', age: 21, more: { phone: '12345678' } },
+                    ],
+                  },
+                  {
+                    sheet: 'Children',
+                    columns: [
+                      { label: 'User', value: 'user' }, // Top level data
+                      { label: 'Age', value: 'age', format: '# "years"' }, // Custom format
+                      {
+                        label: 'Phone',
+                        value: (row: any) => row?.more?.phone ?? '',
+                      }, // Run functions
+                    ],
+                    content: [
+                      { user: 'Manuel', age: 16, more: { phone: '99999999' } },
+                      { user: 'Ana', age: 17, more: { phone: '87654321' } },
+                    ],
+                  },
+                ];
+                xlsx(data, settings);
               }}
             >
-              Print Timetable
+              Save Timetable
             </Button>
           </Grid>
         </Grid>
@@ -655,7 +696,6 @@ const Timetable = () => {
                               (fp) =>
                                 fp &&
                                 fp.day === selectedTimetable?.day &&
-                                !fp.isAbsent &&
                                 fp.periods.includes(selectedTimetable.period) &&
                                 // !timetable.find(
                                 //   (t) =>

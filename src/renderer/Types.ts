@@ -18,7 +18,6 @@ export interface FreePeriod {
   day: DOW;
   teacher: Teacher;
   periods: string[];
-  isAbsent: boolean;
 }
 
 export type DOW = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';

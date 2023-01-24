@@ -31,8 +31,15 @@ import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 
 const Absentees = () => {
-  const { absentees, teachers, timetable, updateAbsentees, updateTimetable } =
-    useApp();
+  const {
+    absentees,
+    freePeriods,
+    teachers,
+    timetable,
+    updateAbsentees,
+    updateTimetable,
+    updateFreePeriods,
+  } = useApp();
   const [isOpenAddAbsentee, setIsOpenAddAbsentee] = useState<boolean>(false);
   const [selectedDow, setSelectedDow] = useState<DOW | undefined>();
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>();

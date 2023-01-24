@@ -1,7 +1,8 @@
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
-import { BrowserWindow, app, ipcMain, shell } from 'electron';
+import { BrowserWindow, app, contextBridge, ipcMain, shell } from 'electron';
 
+import { Timetable } from 'renderer/Types';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
 import log from 'electron-log';
@@ -16,6 +17,7 @@ import os from 'os';
  */
 import path from 'path';
 import { resolveHtmlPath } from './util';
+import xlsx from 'json-as-xlsx';
 
 class AppUpdater {
   constructor() {
@@ -27,16 +29,23 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('print-to-pdf', async (event, content) => {
+ipcMain.on('print-to-pdf', async (event, content: Timetable[]) => {
   const pdfPath = path.join(os.tmpdir(), 'timetable.pdf');
   const win = BrowserWindow.fromWebContents(event.sender);
 
-  win?.webContents.printToPDF({ landscape: true, printSelectionOnly: true, marginsType: 1 }).then((data) => {
-    fs.writeFile(pdfPath, data, {}, () => {
-      shell.openExternal('file://' + pdfPath);
-      event.sender.send('wrote-pdf', pdfPath);
-    });
-  });
+  // win?.webContents.printToPDF({ landscape: true, printSelectionOnly: true, marginsType: 1, scaleFactor: 80 }).then((data) => {
+  //   fs.writeFile(pdfPath, data, {}, () => {
+  //     shell.openExternal('file://' + pdfPath);
+  //     event.sender.send('wrote-pdf', pdfPath);
+  //   });
+  // });
+  const settings = {
+    fileName: 'MySpreadsheet', // Name of the resulting spreadsheet
+    extraLength: 3, // A bigger number means that columns will be wider
+    writeMode: 'writeFile', // The available parameters are 'WriteFile' and 'write'. This setting is optional. Useful in such cases https://docs.sheetjs.com/docs/solutions/output#example-remote-file
+    writeOptions: {}, // Style options from https://docs.sheetjs.com/docs/api/write-options
+    RTL: true, // Display the columns from right-to-left (the default value is false)
+  };
 });
 
 if (process.env.NODE_ENV === 'production') {

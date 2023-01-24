@@ -98,7 +98,6 @@ const reducerFreePeriods = (
           editEntry.periods = data.periods;
           editEntry.day = data.day;
           editEntry.teacher = data.teacher;
-          editEntry.isAbsent = data.isAbsent;
           const withoutEntry = state.filter(
             (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
           );
