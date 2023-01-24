@@ -6,7 +6,6 @@ import {
   Backdrop,
   Box,
   Button,
-  Checkbox,
   Chip,
   Dialog,
   DialogActions,
@@ -15,11 +14,9 @@ import {
   DialogTitle,
   Fade,
   FormControl,
-  FormLabel,
   Grid,
   IconButton,
   InputLabel,
-  ListItemText,
   MenuItem,
   Modal,
   Select,
@@ -64,7 +61,14 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const Timetable = () => {
-  const { teachers, timetable, updateTimetable, subjects } = useApp();
+  const {
+    absentees,
+    teachers,
+    timetable,
+    freePeriods,
+    updateTimetable,
+    subjects,
+  } = useApp();
   const [isOpenAddEntry, setIsOpenAddEntry] = useState<boolean>(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>(
     undefined
@@ -72,7 +76,7 @@ const Timetable = () => {
   const [dow, setDow] = useState<DOW | undefined>();
   const [selectedPeriod, setSelectedPeriod] = useState<string | undefined>();
   const [selectedSubject, setSelectedSubject] = useState<Subject | undefined>();
-  const [selectedSubstitue, setSelectedSubstitue] = useState<
+  const [selectedSubstitute, setSelectedSubstitute] = useState<
     Teacher | undefined
   >();
   const [isOpenDeleteClass, setIsOpenDeleteClass] = useState<boolean>(false);
@@ -82,15 +86,21 @@ const Timetable = () => {
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<
     Subject | undefined
   >();
+  const [isOpenAssignSub, setIsOpenAssignSub] = useState<boolean>(false);
+  const [selectedTimetable, setSelectedTimetable] = useState<
+    Timetable | undefined
+  >();
 
   const reset = () => {
     setIsOpenAddEntry(false);
+    setIsOpenAssignSub(false);
     setDow(undefined);
     setSelectedPeriod(undefined);
     setSelectedTeacher(undefined);
     setSelectedSubject(undefined);
-    setSelectedSubstitue(undefined);
+    setSelectedSubstitute(undefined);
     setIsOpenDeleteClass(false);
+    setSelectedTimetable(undefined);
   };
 
   const handleSubmit = (e: any) => {
@@ -102,9 +112,28 @@ const Timetable = () => {
         period: selectedPeriod,
         teacher: selectedTeacher,
         subject: selectedSubject,
-        substitue: selectedSubstitue,
+        substitute: selectedSubstitute,
+        isAbsent: !!absentees.find(
+          (a) =>
+            a.day === dow &&
+            a.teacher?.key === selectedTeacher?.key &&
+            a.periods.includes(selectedPeriod!)
+        ),
       } as Timetable,
     ]);
+    reset();
+  };
+
+  const handleAssign = (e: any) => {
+    e.preventDefault();
+    updateTimetable([
+      'edit',
+      {
+        ...selectedTimetable,
+        substitute: selectedSubstitute,
+      } as Timetable,
+    ]);
+
     reset();
   };
 
@@ -274,9 +303,21 @@ const Timetable = () => {
                                 data && (
                                   <Chip
                                     key={`${data.day}-${data.teacher?.key}`}
+                                    color={
+                                      data.isAbsent && !data.substitute
+                                        ? 'error'
+                                        : data.isAbsent && data.substitute
+                                        ? 'success'
+                                        : 'default'
+                                    }
                                     label={`${data.teacher.initial} ${data.teacher.lastName} (${data.subject?.code})`}
                                     deleteIcon={<Delete />}
-                                    // onClick={() => {}}
+                                    onClick={() => {
+                                      if (data.isAbsent) {
+                                        setSelectedTimetable(data);
+                                        setIsOpenAssignSub(true);
+                                      }
+                                    }}
                                     onDelete={() => {
                                       setIsOpenDeleteClass(true);
                                       setSelectedTeacher(data.teacher);
@@ -520,6 +561,110 @@ const Timetable = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          {/* Assign a substitute */}
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={isOpenAssignSub}
+            onClose={reset}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+            BackdropProps={{
+              timeout: 500,
+            }}
+          >
+            <Fade in={isOpenAssignSub}>
+              <Box sx={modalStyle}>
+                <>
+                  <Typography
+                    id="transition-modal-title"
+                    variant="h6"
+                    component="h2"
+                  >
+                    Assign or change a substitute teacher for this period.
+                  </Typography>
+                </>
+                <form onSubmit={handleAssign}>
+                  <Box
+                    sx={{
+                      my: 4,
+                    }}
+                  >
+                    <Grid container alignItems={'center'} direction="row">
+                      <Grid item xs={6}>
+                        <FormControl
+                          variant="standard"
+                          size="small"
+                          sx={{
+                            m: 1,
+                            minWidth: 120,
+                            margin: 'unset',
+                            width: '90%',
+                          }}
+                        >
+                          <InputLabel id="demo-simple-select-standard-label">
+                            Substitute
+                          </InputLabel>
+                          <Select
+                            labelId="demo-simple-select-standard-label"
+                            id="demo-simple-select-standard"
+                            value={selectedSubstitute?.key}
+                            onChange={(event: SelectChangeEvent) => {
+                              const key = event?.target?.value;
+                              teachers.find(
+                                (t) =>
+                                  t && t.key === key && setSelectedSubstitute(t)
+                              );
+                            }}
+                            label="Teacher"
+                            required
+                            sx={{ my: 1 }}
+                          >
+                            {freePeriods.map(
+                              (fp) =>
+                                fp &&
+                                fp.day === selectedTimetable?.day &&
+                                !fp.isAbsent &&
+                                fp.periods.includes(selectedTimetable.period) &&
+                                !timetable.find(
+                                  (t) =>
+                                    t.day === selectedTimetable.day &&
+                                    t.period === selectedTimetable.period &&
+                                    t.substitute &&
+                                    t.substitute.key === fp.teacher.key
+                                ) &&
+                                fp.teacher.key !==
+                                  selectedTimetable.teacher.key && (
+                                  <MenuItem
+                                    key={fp.teacher.key}
+                                    value={fp.teacher.key}
+                                  >{`${fp.teacher.initial} ${fp.teacher.lastName}`}</MenuItem>
+                                )
+                            )}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      float: 'right',
+                      display: 'flex',
+                      marginTop: '16px',
+                      columnGap: '16px',
+                    }}
+                  >
+                    <Button variant="contained" type="submit">
+                      Assign
+                    </Button>
+                    <Button onClick={reset}>Cancel</Button>
+                  </Box>
+                </form>
+              </Box>
+            </Fade>
+          </Modal>
         </Box>
       </Paper>
     </Box>

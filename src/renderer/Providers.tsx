@@ -96,6 +96,7 @@ const reducerFreePeriods = (
         );
         if (editEntry) {
           editEntry.periods = data.periods;
+          editEntry.isAbsent = data.isAbsent;
           const withoutEntry = state.filter(
             (e) => e.day !== data.day || e.teacher.key !== data.teacher.key
           );
@@ -147,8 +148,9 @@ const reducerTimetable = (
             e.period === data.period
         );
         if (editEntry) {
-          editEntry.substitue = data.substitue;
+          editEntry.substitute = data.substitute;
           editEntry.subject = data.subject;
+          editEntry.isAbsent = data.isAbsent;
           const withoutEntry = state.filter(
             (e) =>
               e.day !== data.day ||
@@ -268,6 +270,15 @@ const AppProvider = (props: Props) => {
         StorageKeys.TIMETABLE
       );
       if (_timetable?.length) updateTimetable(['init', _timetable]);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const _absentees = await localforage.getItem<Absentee[]>(
+        StorageKeys.ABSENTEES
+      );
+      if (_absentees?.length) updateAbsentees(['init', _absentees]);
     })();
   }, []);
 

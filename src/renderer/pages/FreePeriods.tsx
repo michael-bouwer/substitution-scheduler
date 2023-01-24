@@ -55,7 +55,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const FreePeriods = () => {
-  const { teachers, freePeriods, updateFreePeriods } = useApp();
+  const { absentees, teachers, freePeriods, updateFreePeriods } = useApp();
   const [isOpenAddEntry, setIsOpenAddEntry] = useState<boolean>(false);
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>(
     undefined
@@ -102,6 +102,12 @@ const FreePeriods = () => {
           day: dow,
           periods: selectedPeriods,
           teacher: selectedTeacher,
+          isAbsent: !!absentees.find(
+            (a) =>
+              a.day === dow &&
+              a.teacher?.key === selectedTeacher?.key &&
+              a.periods.find((p) => selectedPeriods.includes(p))
+          ),
         } as FreePeriod,
       ]);
     } else if (mode === ModalMode.EDIT) {
@@ -111,6 +117,12 @@ const FreePeriods = () => {
           day: dow,
           periods: selectedPeriods,
           teacher: selectedTeacher,
+          isAbsent: !!absentees.find(
+            (a) =>
+              a.day === dow &&
+              a.teacher?.key === selectedTeacher?.key &&
+              a.periods.find((p) => selectedPeriods.includes(p))
+          ),
         } as FreePeriod,
       ]);
     }
@@ -177,6 +189,7 @@ const FreePeriods = () => {
                             (data) =>
                               data && (
                                 <Chip
+                                  color={data.isAbsent ? 'error' : 'default'}
                                   key={`${data.day}-${data.teacher?.key}`}
                                   onClick={() => handleClickEdit(data)}
                                   label={`${data.teacher.initial} ${data.teacher.lastName}`}

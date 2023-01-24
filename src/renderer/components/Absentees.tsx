@@ -1,5 +1,5 @@
 import { Absentee, DOW, Teacher } from 'renderer/Types';
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, SetMealOutlined } from '@mui/icons-material';
 import {
   Alert,
   Backdrop,
@@ -25,35 +25,62 @@ import {
   SelectChangeEvent,
   Typography,
 } from '@mui/material';
-import { days, modalStyle } from 'renderer/lib';
+import { ModalMode, days, modalStyle } from 'renderer/lib';
 
 import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 
 const Absentees = () => {
-  const { absentees, teachers, updateAbsentees } = useApp();
+  const { absentees, teachers, timetable, updateAbsentees, updateTimetable } =
+    useApp();
   const [isOpenAddAbsentee, setIsOpenAddAbsentee] = useState<boolean>(false);
   const [selectedDow, setSelectedDow] = useState<DOW | undefined>();
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>();
   const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
+  const [selectedAbsentee, setSelectedAbsentee] = useState<
+    Absentee | undefined
+  >();
+  const [mode, setMode] = useState<ModalMode>(ModalMode.ADD);
 
   const reset = () => {
+    setMode(ModalMode.ADD);
     setIsOpenAddAbsentee(false);
+    setIsOpenDeleteModal(false);
     setSelectedDow(undefined);
     setSelectedTeacher(undefined);
     setSelectedPeriods([]);
+    setSelectedAbsentee(undefined);
   };
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
     updateAbsentees([
-      'add',
+      mode === ModalMode.ADD ? 'add' : 'edit',
       {
-        day: selectedDow,
-        teacher: selectedTeacher,
-        periods: selectedPeriods,
+        day: mode === ModalMode.ADD ? selectedDow : selectedAbsentee?.day,
+        teacher:
+          mode === ModalMode.ADD ? selectedTeacher : selectedAbsentee?.teacher,
+        periods: selectedPeriods || selectedAbsentee?.periods,
       } as Absentee,
     ]);
+    timetable.forEach((t) => {
+      if (
+        (mode === ModalMode.ADD &&
+          t.day === selectedDow &&
+          t.teacher?.key === selectedTeacher?.key) ||
+        (mode === ModalMode.EDIT &&
+          t.day === selectedAbsentee?.day &&
+          t.teacher.key === selectedAbsentee?.teacher.key)
+      )
+        updateTimetable([
+          'edit',
+          {
+            ...t,
+            isAbsent: selectedPeriods.includes(t.period),
+          },
+        ]);
+    });
     reset();
   };
 
@@ -67,6 +94,25 @@ const Absentees = () => {
       // On autofill we get a stringified value.
       typeof value === 'string' ? value.split(',') : value
     );
+  };
+
+  const handleDelete = () => {
+    updateAbsentees(['delete', selectedAbsentee]);
+    timetable.forEach((t) => {
+      if (
+        t.day === selectedAbsentee?.day &&
+        t.teacher?.key === selectedAbsentee?.teacher?.key &&
+        selectedAbsentee?.periods?.includes(t.period)
+      )
+        updateTimetable([
+          'edit',
+          {
+            ...t,
+            isAbsent: false,
+          },
+        ]);
+    });
+    reset();
   };
 
   return (
@@ -126,12 +172,22 @@ const Absentees = () => {
                           } | ${
                             a.periods && a.periods.length === 11
                               ? 'All Day'
-                              : a.periods?.join(', ')
+                              : a.periods
+                                  ?.sort((a, b) => parseInt(a) - parseInt(b))
+                                  .join(', ')
                           }`}
                           deleteIcon={<Delete />}
                           sx={{ margin: '8px 8px' }}
-                          // onClick={() => {}}
-                          onDelete={() => {}}
+                          onClick={() => {
+                            setIsOpenAddAbsentee(true);
+                            setMode(ModalMode.EDIT);
+                            setSelectedAbsentee(a);
+                            setSelectedPeriods(a.periods);
+                          }}
+                          onDelete={() => {
+                            setSelectedAbsentee(a);
+                            setIsOpenDeleteModal(true);
+                          }}
                         ></Chip>
                       );
                     })}
@@ -162,7 +218,7 @@ const Absentees = () => {
                 variant="h6"
                 component="h2"
               >
-                Capture absence for teacher.
+                {mode === ModalMode.ADD ? 'Add' : 'Edit'} absence for teacher.
               </Typography>
               <Typography id="transition-modal-description" sx={{ mt: 2 }}>
                 Select the day, teacher, and periods for which they will be
@@ -193,11 +249,16 @@ const Absentees = () => {
                       <Select
                         labelId="demo-simple-select-standard-label"
                         id="demo-simple-select-standard"
-                        value={selectedDow}
+                        value={
+                          mode === ModalMode.EDIT
+                            ? selectedAbsentee?.day
+                            : selectedDow
+                        }
                         onChange={(event: SelectChangeEvent) =>
                           setSelectedDow(event?.target?.value as DOW)
                         }
                         label="Day"
+                        disabled={mode === ModalMode.EDIT}
                         required
                         sx={{ my: 1 }}
                       >
@@ -229,7 +290,11 @@ const Absentees = () => {
                       <Select
                         labelId="demo-simple-select-standard-label"
                         id="demo-simple-select-standard"
-                        value={selectedTeacher?.key}
+                        value={
+                          mode === ModalMode.EDIT
+                            ? selectedAbsentee?.teacher.key
+                            : selectedTeacher?.key
+                        }
                         onChange={(event: SelectChangeEvent) => {
                           const key = event?.target?.value;
                           teachers.find(
@@ -237,18 +302,28 @@ const Absentees = () => {
                           );
                         }}
                         label="Teacher"
+                        disabled={mode === ModalMode.EDIT || !selectedDow}
                         required
                         sx={{ my: 1 }}
                       >
-                        {teachers.map(
-                          (t) =>
-                            t && (
-                              <MenuItem
-                                key={t.key}
-                                value={t.key}
-                              >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                            )
-                        )}
+                        {teachers
+                          .filter(
+                            (t) =>
+                              !absentees.find(
+                                (a) =>
+                                  a.day === selectedDow &&
+                                  a.teacher.key === t.key
+                              )
+                          )
+                          .map(
+                            (t) =>
+                              t && (
+                                <MenuItem
+                                  key={t.key}
+                                  value={t.key}
+                                >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                              )
+                          )}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -274,6 +349,11 @@ const Absentees = () => {
                         label="Teacher"
                         required
                         multiple
+                        disabled={
+                          mode === ModalMode.ADD &&
+                          !selectedDow &&
+                          !selectedTeacher
+                        }
                         sx={{ my: 1 }}
                         renderValue={(selected) => selected.join(', ')}
                       >
@@ -306,6 +386,11 @@ const Absentees = () => {
                         control={
                           <Checkbox
                             checked={selectedPeriods.length === 11}
+                            disabled={
+                              mode === ModalMode.ADD &&
+                              !selectedDow &&
+                              !selectedTeacher
+                            }
                             onChange={() => {
                               if (selectedPeriods.length === 11)
                                 setSelectedPeriods([]);
@@ -342,11 +427,62 @@ const Absentees = () => {
                 }}
               >
                 <Button variant="contained" type="submit">
-                  Add
+                  {mode === ModalMode.ADD ? 'Add' : 'Edit'}
                 </Button>
                 <Button onClick={reset}>Cancel</Button>
               </Box>
             </form>
+          </Box>
+        </Fade>
+      </Modal>
+
+      {/* Delete Modal */}
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={isOpenDeleteModal}
+        onClose={() => setIsOpenDeleteModal(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={isOpenDeleteModal}>
+          <Box sx={modalStyle}>
+            <Typography id="transition-modal-title" variant="h6" component="h2">
+              Confirmation
+            </Typography>
+            <Typography id="transition-modal-description" sx={{ mt: 2 }}>
+              Are you sure you'd like to delete this absentee entry? <br />
+              <strong>
+                {`${selectedAbsentee?.day} - ${
+                  selectedAbsentee?.teacher?.initial
+                } ${selectedAbsentee?.teacher?.lastName} | ${
+                  selectedAbsentee?.periods &&
+                  selectedAbsentee?.periods.length === 11
+                    ? 'All Day'
+                    : selectedAbsentee?.periods
+                        ?.sort((a, b) => parseInt(a) - parseInt(b))
+                        .join(', ')
+                }
+                `}
+              </strong>
+            </Typography>
+            <Box
+              sx={{
+                position: 'relative',
+                float: 'right',
+                display: 'flex',
+                marginTop: '16px',
+                columnGap: '16px',
+              }}
+            >
+              <Button variant="contained" color="error" onClick={handleDelete}>
+                Delete
+              </Button>
+              <Button onClick={reset}>Cancel</Button>
+            </Box>
           </Box>
         </Fade>
       </Modal>

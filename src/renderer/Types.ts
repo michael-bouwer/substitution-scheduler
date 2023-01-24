@@ -18,6 +18,7 @@ export interface FreePeriod {
   day: DOW;
   teacher: Teacher;
   periods: string[];
+  isAbsent: boolean;
 }
 
 export type DOW = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
@@ -26,12 +27,13 @@ export interface Timetable {
   day: DOW;
   teacher: Teacher;
   period: string;
-  substitue: Teacher;
+  substitute: Teacher;
   subject: Subject;
+  isAbsent: boolean;
 }
 
 export interface Absentee {
-  day: DOW
-  teacher: Teacher
-  periods: string[]
+  day: DOW;
+  teacher: Teacher;
+  periods: string[];
 }
