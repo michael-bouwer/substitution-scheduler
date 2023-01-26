@@ -30,9 +30,11 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('backup', async (event, content: any) => {
-  console.log(`${app.getPath('documents')}backup-${new Date().getMilliseconds()}.json`);
+  console.log(
+    `${app.getPath('desktop')}/backup-${new Date().getMilliseconds()}.json`
+  );
   fs.writeFile(
-    `${app.getPath('documents')}backup-${new Date().getMilliseconds()}.json`,
+    `${app.getPath('desktop')}/backup-${new Date().getMilliseconds()}.json`,
     JSON.stringify(content),
     (error: any) => {
       if (error) console.log(error);

@@ -131,6 +131,10 @@ const DB = () => {
             allData.timetable = timetable;
 
             ipcRenderer.send('backup', allData);
+            setMessage(
+              'Backup has been saved to desktop (eg) C:/users/CURRENT_USER/desktop/backup-xxx.json)'
+            );
+            setOpen(true);
           }}
         >
           Backup Current Data

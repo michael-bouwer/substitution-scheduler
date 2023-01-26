@@ -2,6 +2,7 @@ import './Shared.scss';
 import { ipcRenderer } from 'electron';
 
 import {
+  Alert,
   Backdrop,
   Box,
   Button,
@@ -48,7 +49,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
-    textAlign: 'justify'
+    textAlign: 'justify',
     // border: '1px solid gray'
   },
 }));
@@ -95,6 +96,11 @@ const Timetable = () => {
   >();
   const [selectedGrade, setSelectedGrade] = useState<string | undefined>();
   const [selectedClassCode, setSelectedClassCode] = useState<string>('');
+  const [selectedGradeFilter, setSelectedGradeFilter] = useState<
+    string | undefined
+  >();
+  const [selectedClassCodeFilter, setSelectedClassCodeFilter] =
+    useState<string>();
 
   const reset = () => {
     setIsOpenAddEntry(false);
@@ -228,7 +234,7 @@ const Timetable = () => {
           mt: 4,
         }}
       >
-        <Grid container alignItems={'center'} direction="row" gap={6}>
+        <Grid container alignItems={'center'} direction="row" gap={3}>
           <Grid item>
             <h4>
               <strong>FILTERS:</strong>
@@ -314,6 +320,50 @@ const Timetable = () => {
                   )}
               </Select>
             </FormControl>
+          </Grid>
+          <Grid item>
+            <FormControl variant="standard" size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="demo-simple-select-standard-label">
+                Grade
+              </InputLabel>
+              <Select
+                labelId="demo-simple-select-standard-label"
+                id="demo-simple-select-standard-subject"
+                value={selectedGradeFilter}
+                onChange={(event: SelectChangeEvent) => {
+                  const key = event?.target?.value;
+                  if (key === '') setSelectedGradeFilter(undefined);
+                  else setSelectedGradeFilter(event?.target?.value);
+                }}
+                label="Grade"
+              >
+                <MenuItem value="">
+                  <em>ALL</em>
+                </MenuItem>
+                {["4", "5", "6", "7"].map(
+                  (s) =>
+                    s && (
+                      <MenuItem key={s} value={s}>
+                        Grade {s}
+                      </MenuItem>
+                    )
+                )}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <TextField
+              id="standard-basic"
+              label="Class Code"
+              value={selectedClassCodeFilter}
+              variant="standard"
+              onChange={(e) => {
+                const key = e?.target?.value;
+                if (key === '') setSelectedClassCodeFilter(undefined);
+                else setSelectedClassCodeFilter(e?.target?.value);
+              }}
+              sx={{ my: 1 }}
+            />
           </Grid>
           <Grid item>
             <Button
@@ -419,7 +469,11 @@ const Timetable = () => {
                                     selectedTeacherFilter?.key) &&
                                 (selectedSubjectFilter === undefined ||
                                   selectedSubjectFilter?.key ===
-                                    tt.subject?.key)
+                                    tt.subject?.key) &&
+                                (selectedGradeFilter === undefined ||
+                                  tt.grade === selectedGradeFilter) &&
+                                (selectedClassCodeFilter === undefined ||
+                                  tt.classCode === selectedClassCodeFilter)
                             )
                             .sort((a, b) =>
                               a.teacher?.lastName > b.teacher?.lastName
@@ -788,6 +842,20 @@ const Timetable = () => {
                     variant="h6"
                     component="h2"
                   >
+                    {selectedTimetable &&
+                    selectedTimetable.day &&
+                    selectedTimetable.teacher?.key &&
+                    selectedTimetable.subject?.key &&
+                    selectedTimetable.grade &&
+                    selectedTimetable.classCode
+                      ? `${selectedTimetable.day}, period ${selectedTimetable.period} - ${selectedTimetable.teacher?.initial} ${selectedTimetable.teacher?.lastName} (${selectedTimetable.grade}${selectedTimetable.classCode})`
+                      : 'Action required!'}
+                  </Typography>
+                  <Typography
+                    id="transition-modal-title"
+                    variant="subtitle1"
+                    component="h2"
+                  >
                     Assign or change a substitute teacher for this period.
                   </Typography>
                 </>
@@ -798,54 +866,112 @@ const Timetable = () => {
                     }}
                   >
                     <Grid container alignItems={'center'} direction="row">
-                      <Grid item xs={6}>
-                        <FormControl
-                          variant="standard"
-                          size="small"
-                          sx={{
-                            m: 1,
-                            minWidth: 120,
-                            margin: 'unset',
-                            width: '90%',
-                          }}
-                        >
-                          <InputLabel id="demo-simple-select-standard-label">
-                            Substitute
-                          </InputLabel>
-                          <Select
-                            labelId="demo-simple-select-standard-label"
-                            id="demo-simple-select-standard"
-                            value={
-                              selectedSubstitute?.key ||
-                              selectedTimetable?.substitute?.key
-                            }
-                            onChange={(event: SelectChangeEvent) => {
-                              const key = event?.target?.value;
-                              teachers.find(
-                                (t) =>
-                                  t && t.key === key && setSelectedSubstitute(t)
-                              );
+                      {!freePeriods.find(
+                        (fp) =>
+                          fp &&
+                          fp.day === selectedTimetable?.day &&
+                          fp.periods.includes(selectedTimetable.period) &&
+                          fp.teacher?.key !== selectedTimetable.teacher?.key &&
+                          (selectedTimetable?.substitute?.key ===
+                            fp.teacher?.key ||
+                            !timetable.find(
+                              (t) =>
+                                t.day === selectedTimetable?.day &&
+                                t.period === selectedTimetable.period &&
+                                t.isAbsent &&
+                                t.substitute?.key === fp.teacher?.key
+                            ))
+                      ) ? (
+                        <Grid item xs={12}>
+                          <Alert color="error" severity="error">
+                            No substitutes available.
+                          </Alert>
+                        </Grid>
+                      ) : (
+                        <Grid item xs={6}>
+                          <FormControl
+                            variant="standard"
+                            size="small"
+                            sx={{
+                              m: 1,
+                              minWidth: 120,
+                              margin: 'unset',
+                              width: '90%',
                             }}
-                            label="Teacher"
-                            required
-                            sx={{ my: 1 }}
                           >
-                            {freePeriods.map(
-                              (fp) =>
-                                fp &&
-                                fp.day === selectedTimetable?.day &&
-                                fp.periods.includes(selectedTimetable.period) &&
-                                fp.teacher?.key !==
-                                  selectedTimetable.teacher?.key && (
-                                  <MenuItem
-                                    key={fp.teacher?.key}
-                                    value={fp.teacher?.key}
-                                  >{`${fp.teacher.initial} ${fp.teacher.lastName}`}</MenuItem>
+                            <InputLabel id="demo-simple-select-standard-label">
+                              Substitute
+                            </InputLabel>
+                            <Select
+                              labelId="demo-simple-select-standard-label"
+                              id="demo-simple-select-standard"
+                              value={
+                                selectedSubstitute?.key ||
+                                selectedTimetable?.substitute?.key
+                              }
+                              onChange={(event: SelectChangeEvent) => {
+                                const key = event?.target?.value;
+                                teachers.find(
+                                  (t) =>
+                                    t &&
+                                    t.key === key &&
+                                    setSelectedSubstitute(t)
+                                );
+                              }}
+                              label="Teacher"
+                              required
+                              disabled={
+                                !freePeriods.find(
+                                  (fp) =>
+                                    fp &&
+                                    fp.day === selectedTimetable?.day &&
+                                    fp.periods.includes(
+                                      selectedTimetable.period
+                                    ) &&
+                                    fp.teacher?.key !==
+                                      selectedTimetable.teacher?.key &&
+                                    (selectedTimetable?.substitute?.key ===
+                                      fp.teacher?.key ||
+                                      !timetable.find(
+                                        (t) =>
+                                          t.day === selectedTimetable?.day &&
+                                          t.period ===
+                                            selectedTimetable.period &&
+                                          t.isAbsent &&
+                                          t.substitute?.key === fp.teacher?.key
+                                      ))
                                 )
-                            )}
-                          </Select>
-                        </FormControl>
-                      </Grid>
+                              }
+                              sx={{ my: 1 }}
+                            >
+                              {freePeriods.map(
+                                (fp) =>
+                                  fp &&
+                                  fp.day === selectedTimetable?.day &&
+                                  fp.periods.includes(
+                                    selectedTimetable.period
+                                  ) &&
+                                  fp.teacher?.key !==
+                                    selectedTimetable.teacher?.key &&
+                                  (selectedTimetable?.substitute?.key ===
+                                    fp.teacher?.key ||
+                                    !timetable.find(
+                                      (t) =>
+                                        t.day === selectedTimetable?.day &&
+                                        t.period === selectedTimetable.period &&
+                                        t.isAbsent &&
+                                        t.substitute?.key === fp.teacher?.key
+                                    )) && (
+                                    <MenuItem
+                                      key={fp.teacher?.key}
+                                      value={fp.teacher?.key}
+                                    >{`${fp.teacher.initial} ${fp.teacher.lastName}`}</MenuItem>
+                                  )
+                              )}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                      )}
                     </Grid>
                   </Box>
                   <Box
@@ -858,13 +984,35 @@ const Timetable = () => {
                     }}
                   >
                     {selectedTimetable?.substitute && (
-                      <Button sx={{ float: 'left' }} onClick={handleUnassign}>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        sx={{ float: 'left' }}
+                        onClick={handleUnassign}
+                      >
                         Unassign Substitute
                       </Button>
                     )}
-                    <Button variant="contained" type="submit">
-                      Assign
-                    </Button>
+                    {freePeriods.find(
+                      (fp) =>
+                        fp &&
+                        fp.day === selectedTimetable?.day &&
+                        fp.periods.includes(selectedTimetable.period) &&
+                        fp.teacher?.key !== selectedTimetable.teacher?.key &&
+                        (selectedTimetable?.substitute?.key ===
+                          fp.teacher?.key ||
+                          !timetable.find(
+                            (t) =>
+                              t.day === selectedTimetable?.day &&
+                              t.period === selectedTimetable.period &&
+                              t.isAbsent &&
+                              t.substitute?.key === fp.teacher?.key
+                          ))
+                    ) && (
+                      <Button variant="contained" type="submit">
+                        Assign
+                      </Button>
+                    )}
                     <Button onClick={reset}>Cancel</Button>
                   </Box>
                 </form>

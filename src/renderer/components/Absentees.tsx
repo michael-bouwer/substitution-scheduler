@@ -105,6 +105,7 @@ const Absentees = () => {
           'edit',
           {
             ...t,
+            substitute: undefined,
             isAbsent: false,
           },
         ]);
