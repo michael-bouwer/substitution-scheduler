@@ -96,43 +96,47 @@ const Subjects = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {subjects.map((subject) => (
-                <TableRow
-                  key={subject.code}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {subject.code}
-                  </TableCell>
-                  <TableCell>{subject.name}</TableCell>
-                  <TableCell>{subject.description}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      onClick={() => {
-                        setIsOpenAddSubjectModal(true);
-                        setMode(ModalMode.EDIT);
-                        setSelectedSubject(subject);
-                        setCode(subject.code || '');
-                        setName(subject.name || '');
-                        setDescription(subject.description || '');
-                      }}
-                    >
-                      <Edit />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      color="error"
-                      onClick={() => {
-                        setIsOpenDeleteSubject(true);
-                        setSelectedSubject(subject);
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {subjects
+                .sort((a, b) =>
+                  a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+                )
+                .map((subject) => (
+                  <TableRow
+                    key={subject.code}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {subject.code}
+                    </TableCell>
+                    <TableCell>{subject.name}</TableCell>
+                    <TableCell>{subject.description}</TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        onClick={() => {
+                          setIsOpenAddSubjectModal(true);
+                          setMode(ModalMode.EDIT);
+                          setSelectedSubject(subject);
+                          setCode(subject.code || '');
+                          setName(subject.name || '');
+                          setDescription(subject.description || '');
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton
+                        color="error"
+                        onClick={() => {
+                          setIsOpenDeleteSubject(true);
+                          setSelectedSubject(subject);
+                        }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
