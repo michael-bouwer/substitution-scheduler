@@ -48,6 +48,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
+    textAlign: 'justify'
     // border: '1px solid gray'
   },
 }));
@@ -256,15 +257,23 @@ const Timetable = () => {
                 <MenuItem value="">
                   <em>ALL</em>
                 </MenuItem>
-                {teachers.map(
-                  (t) =>
-                    t && (
-                      <MenuItem
-                        key={t.key}
-                        value={t.key}
-                      >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                    )
-                )}
+                {teachers
+                  .sort((a, b) =>
+                    a.firstName > b.firstName
+                      ? 1
+                      : b.firstName > a.firstName
+                      ? -1
+                      : 0
+                  )
+                  .map(
+                    (t) =>
+                      t && (
+                        <MenuItem
+                          key={t.key}
+                          value={t.key}
+                        >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                      )
+                  )}
               </Select>
             </FormControl>
           </Grid>
@@ -291,14 +300,18 @@ const Timetable = () => {
                 <MenuItem value="">
                   <em>ALL</em>
                 </MenuItem>
-                {subjects.map(
-                  (s) =>
-                    s && (
-                      <MenuItem key={s.key} value={s.key}>
-                        {s.name}
-                      </MenuItem>
-                    )
-                )}
+                {subjects
+                  .sort((a, b) =>
+                    a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+                  )
+                  .map(
+                    (s) =>
+                      s && (
+                        <MenuItem key={s.key} value={s.key}>
+                          {s.name}
+                        </MenuItem>
+                      )
+                  )}
               </Select>
             </FormControl>
           </Grid>
@@ -408,6 +421,13 @@ const Timetable = () => {
                                   selectedSubjectFilter?.key ===
                                     tt.subject?.key)
                             )
+                            .sort((a, b) =>
+                              a.teacher?.lastName > b.teacher?.lastName
+                                ? 1
+                                : b.teacher?.lastName > a.teacher?.lastName
+                                ? -1
+                                : 0
+                            )
                             .map(
                               (data) =>
                                 data && (
@@ -486,7 +506,7 @@ const Timetable = () => {
                       my: 4,
                     }}
                   >
-                    <Grid container alignItems={'center'} direction="row">
+                    <Grid container>
                       <Grid item xs={6}>
                         <FormControl
                           variant="standard"
@@ -517,7 +537,13 @@ const Timetable = () => {
                             sx={{ my: 1 }}
                           >
                             {teachers
-                              .sort((a,b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+                              .sort((a, b) =>
+                                a.firstName > b.firstName
+                                  ? 1
+                                  : b.firstName > a.firstName
+                                  ? -1
+                                  : 0
+                              )
                               .map(
                                 (t) =>
                                   t && (
@@ -615,14 +641,18 @@ const Timetable = () => {
                             required
                             sx={{ my: 1 }}
                           >
-                            {subjects.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)).map(
-                              (s) =>
-                                s && (
-                                  <MenuItem key={s.key} value={s.key}>
-                                    {s.name}
-                                  </MenuItem>
-                                )
-                            )}
+                            {subjects
+                              .sort((a, b) =>
+                                a.name > b.name ? 1 : b.name > a.name ? -1 : 0
+                              )
+                              .map(
+                                (s) =>
+                                  s && (
+                                    <MenuItem key={s.key} value={s.key}>
+                                      {s.name}
+                                    </MenuItem>
+                                  )
+                              )}
                           </Select>
                         </FormControl>
                       </Grid>
@@ -668,9 +698,7 @@ const Timetable = () => {
                         <FormControl
                           variant="standard"
                           sx={{
-                            m: 1,
                             minWidth: 120,
-                            margin: 'unset',
                             width: '90%',
                           }}
                         >
@@ -679,6 +707,7 @@ const Timetable = () => {
                             label="ClassCode"
                             value={selectedClassCode}
                             variant="standard"
+                            required
                             onChange={(e) =>
                               setSelectedClassCode(e?.target?.value)
                             }

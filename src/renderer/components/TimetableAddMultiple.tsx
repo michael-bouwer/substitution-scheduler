@@ -6,19 +6,20 @@ import {
   Fade,
   FormControl,
   Grid,
-  IconButton,
   InputLabel,
   ListItemText,
   MenuItem,
   Modal,
   Select,
   SelectChangeEvent,
+  Snackbar,
   TextField,
   Typography,
 } from '@mui/material';
 import { DOW, Subject, Teacher, Timetable } from 'renderer/Types';
 import { ModalMode, days, modalStyle } from 'renderer/lib';
-import React, { useEffect } from 'react';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import React, { forwardRef, useEffect } from 'react';
 
 import { Add } from '@mui/icons-material';
 import { useApp } from 'renderer/Providers';
@@ -30,6 +31,20 @@ type PeriodsForDay = {
   day: string;
   selectedPeriods: string[];
 };
+
+const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref
+) {
+  return (
+    <MuiAlert
+      elevation={props.elevation || 6}
+      ref={ref}
+      variant="filled"
+      {...props}
+    />
+  );
+});
 
 const TimetableAddMultiple = (props: Props) => {
   const { teachers, timetable, subjects, updateTimetable } = useApp();
@@ -49,6 +64,9 @@ const TimetableAddMultiple = (props: Props) => {
   const [selectedGrade, setSelectedGrade] = useState<string | undefined>();
   const [selectedClassCode, setSelectedClassCode] = useState<string>('');
   const [mode, setMode] = useState<ModalMode>(ModalMode.ADD);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
+  const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (
@@ -103,7 +121,6 @@ const TimetableAddMultiple = (props: Props) => {
     );
     setMode(ModalMode.ADD);
   };
-  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleMultiSelectChange = (
     event: SelectChangeEvent<string[]>,
@@ -163,6 +180,8 @@ const TimetableAddMultiple = (props: Props) => {
           ]);
       });
     });
+    setMessage('Timetable updated.');
+    setSnackbarOpen(true);
   };
 
   const handleDelete = () => {
@@ -175,6 +194,8 @@ const TimetableAddMultiple = (props: Props) => {
       )
         updateTimetable(['delete', t]);
     });
+    setMessage('Entries deleted');
+    setSnackbarOpen(true);
     reset();
   };
 
@@ -188,7 +209,7 @@ const TimetableAddMultiple = (props: Props) => {
         size="small"
         onClick={() => setIsOpen(true)}
       >
-        Add
+        Add/Edit
       </Button>
       {/* Add a class */}
       <Modal
@@ -314,64 +335,67 @@ const TimetableAddMultiple = (props: Props) => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={3}>
-                    <FormControl
-                      variant="standard"
-                      size="small"
-                      sx={{
-                        m: 1,
-                        minWidth: 120,
-                        margin: 'unset',
-                        width: '90%',
-                      }}
-                    >
-                      <InputLabel id="demo-simple-select-standard-label">
-                        Grade
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-standard-label"
-                        id="demo-simple-select-standard"
-                        value={selectedGrade}
-                        onChange={(event: SelectChangeEvent) => {
-                          event?.target?.value &&
-                            setSelectedGrade(event.target.value);
-                        }}
-                        label="Grade"
-                        required
-                        sx={{ my: 1 }}
-                      >
-                        {[4, 5, 6, 7].map(
-                          (g) =>
-                            g && (
-                              <MenuItem key={g} value={g.toString()}>
-                                {`Grade ${g}`}
-                              </MenuItem>
-                            )
-                        )}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={3}>
-                    <FormControl
-                      variant="standard"
-                      sx={{
-                        m: 1,
-                        minWidth: 120,
-                        margin: 'unset',
-                        width: '90%',
-                      }}
-                    >
-                      <TextField
-                        id="standard-basic"
-                        label="ClassCode"
-                        value={selectedClassCode}
+                  <Grid container>
+                    <Grid item xs={3}>
+                      <FormControl
                         variant="standard"
-                        onChange={(e) =>
-                          setSelectedClassCode(e?.target?.value.trim())
-                        }
-                      />
-                    </FormControl>
+                        size="small"
+                        sx={{
+                          m: 1,
+                          minWidth: 120,
+                          margin: 'unset',
+                          width: '90%',
+                        }}
+                      >
+                        <InputLabel id="demo-simple-select-standard-label">
+                          Grade
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-standard-label"
+                          id="demo-simple-select-standard"
+                          value={selectedGrade}
+                          onChange={(event: SelectChangeEvent) => {
+                            event?.target?.value &&
+                              setSelectedGrade(event.target.value);
+                          }}
+                          label="Grade"
+                          required
+                          sx={{ my: 1 }}
+                        >
+                          {[4, 5, 6, 7].map(
+                            (g) =>
+                              g && (
+                                <MenuItem key={g} value={g.toString()}>
+                                  {`Grade ${g}`}
+                                </MenuItem>
+                              )
+                          )}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={3}>
+                      <FormControl
+                        variant="standard"
+                        sx={{
+                          minWidth: 120,
+                          // margin: 'unset',
+                          width: '90%',
+                        }}
+                      >
+                        <TextField
+                          id="standard-basic"
+                          label="ClassCode"
+                          value={selectedClassCode}
+                          variant="standard"
+                          size='small'
+                          required
+                          onChange={(e) =>
+                            setSelectedClassCode(e?.target?.value.trim())
+                          }
+                        />
+                      </FormControl>
+                    </Grid>
                   </Grid>
 
                   <Grid item xs={12} sx={{ my: 4 }}>
@@ -497,6 +521,19 @@ const TimetableAddMultiple = (props: Props) => {
           </Box>
         </Fade>
       </Modal>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          {message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

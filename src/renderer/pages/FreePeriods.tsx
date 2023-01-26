@@ -40,6 +40,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
+    textAlign: 'justify'
     // border: '1px solid gray'
   },
 }));
@@ -185,6 +186,13 @@ const FreePeriods = () => {
                             (fp) =>
                               fp && fp.day === day && fp.periods.includes(pn)
                           )
+                          .sort((a, b) =>
+                            a.teacher?.lastName > b.teacher?.lastName
+                              ? 1
+                              : b.teacher?.lastName > a.teacher?.lastName
+                              ? -1
+                              : 0
+                          )
                           .map(
                             (data) =>
                               data && (
@@ -278,21 +286,29 @@ const FreePeriods = () => {
                           required
                           sx={{ my: 1 }}
                         >
-                          {teachers.map(
-                            (t) =>
-                              t &&
-                              ((mode === ModalMode.ADD &&
-                                !freePeriods.find(
-                                  (fp) =>
-                                    fp.teacher.key === t.key && fp.day === dow
-                                )) ||
-                                mode === ModalMode.EDIT) && (
-                                <MenuItem
-                                  key={t.key}
-                                  value={t.key}
-                                >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                              )
-                          )}
+                          {teachers
+                            .sort((a, b) =>
+                              a.firstName > b.firstName
+                                ? 1
+                                : b.firstName > a.firstName
+                                ? -1
+                                : 0
+                            )
+                            .map(
+                              (t) =>
+                                t &&
+                                ((mode === ModalMode.ADD &&
+                                  !freePeriods.find(
+                                    (fp) =>
+                                      fp.teacher.key === t.key && fp.day === dow
+                                  )) ||
+                                  mode === ModalMode.EDIT) && (
+                                  <MenuItem
+                                    key={t.key}
+                                    value={t.key}
+                                  >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                                )
+                            )}
                         </Select>
                       </FormControl>
                     </Grid>

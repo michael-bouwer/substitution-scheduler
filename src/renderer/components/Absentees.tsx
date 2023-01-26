@@ -28,13 +28,8 @@ import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 
 const Absentees = () => {
-  const {
-    absentees,
-    teachers,
-    timetable,
-    updateAbsentees,
-    updateTimetable,
-  } = useApp();
+  const { absentees, teachers, timetable, updateAbsentees, updateTimetable } =
+    useApp();
   const [isOpenAddAbsentee, setIsOpenAddAbsentee] = useState<boolean>(false);
   const [selectedDow, setSelectedDow] = useState<DOW | undefined>();
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | undefined>();
@@ -164,6 +159,13 @@ const Absentees = () => {
                   )}
                   {absentees
                     .filter((a) => a && a.day === day)
+                    .sort((a, b) =>
+                      a.teacher?.lastName > b.teacher?.lastName
+                        ? 1
+                        : b.teacher?.lastName > a.teacher?.lastName
+                        ? -1
+                        : 0
+                    )
                     .map((a) => {
                       return (
                         <Chip

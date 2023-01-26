@@ -114,47 +114,55 @@ const Teachers = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {teachers.map((teacher) => (
-                <TableRow
-                  key={teacher.key}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row">
-                    {teacher.initial}
-                  </TableCell>
-                  <TableCell>{teacher.firstName}</TableCell>
-                  <TableCell>{teacher.lastName}</TableCell>
-                  <TableCell>{teacher.email}</TableCell>
-                  <TableCell>{teacher.contact}</TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      onClick={() => {
-                        setIsOpenAddTeacherModal(true);
-                        setMode(ModalMode.EDIT);
-                        setSelectedTeacher(teacher);
-                        setInitial(teacher.initial || '');
-                        setFirstName(teacher.firstName || '');
-                        setLastName(teacher.lastName || '');
-                        setEmail(teacher.email || '');
-                        setContact(teacher.contact || '');
-                      }}
-                    >
-                      <Edit />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      color="error"
-                      onClick={() => {
-                        setIsOpenDeleteTeacher(true);
-                        setSelectedTeacher(teacher);
-                      }}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {teachers
+                .sort((a, b) =>
+                  a.firstName > b.firstName
+                    ? 1
+                    : b.firstName > a.firstName
+                    ? -1
+                    : 0
+                )
+                .map((teacher) => (
+                  <TableRow
+                    key={teacher.key}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row">
+                      {teacher.initial}
+                    </TableCell>
+                    <TableCell>{teacher.firstName}</TableCell>
+                    <TableCell>{teacher.lastName}</TableCell>
+                    <TableCell>{teacher.email}</TableCell>
+                    <TableCell>{teacher.contact}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        onClick={() => {
+                          setIsOpenAddTeacherModal(true);
+                          setMode(ModalMode.EDIT);
+                          setSelectedTeacher(teacher);
+                          setInitial(teacher.initial || '');
+                          setFirstName(teacher.firstName || '');
+                          setLastName(teacher.lastName || '');
+                          setEmail(teacher.email || '');
+                          setContact(teacher.contact || '');
+                        }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        color="error"
+                        onClick={() => {
+                          setIsOpenDeleteTeacher(true);
+                          setSelectedTeacher(teacher);
+                        }}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
