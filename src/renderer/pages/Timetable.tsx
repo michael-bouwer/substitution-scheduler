@@ -20,6 +20,7 @@ import {
   Modal,
   Select,
   SelectChangeEvent,
+  TextField,
   Typography,
 } from '@mui/material';
 import { DOW, FreePeriod, Subject, Teacher, Timetable } from 'renderer/Types';
@@ -38,6 +39,7 @@ import { useApp } from 'renderer/Providers';
 import { useState } from 'react';
 import Absentees from 'renderer/components/Absentees';
 import xlsx, { IJsonSheet } from 'json-as-xlsx';
+import TimetableAddMultiple from 'renderer/components/TimetableAddMultiple';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -90,17 +92,21 @@ const Timetable = () => {
   const [selectedTimetable, setSelectedTimetable] = useState<
     Timetable | undefined
   >();
+  const [selectedGrade, setSelectedGrade] = useState<string | undefined>();
+  const [selectedClassCode, setSelectedClassCode] = useState<string>('');
 
   const reset = () => {
     setIsOpenAddEntry(false);
     setIsOpenAssignSub(false);
+    setIsOpenDeleteClass(false);
     setDow(undefined);
     setSelectedPeriod(undefined);
     setSelectedTeacher(undefined);
     setSelectedSubject(undefined);
     setSelectedSubstitute(undefined);
-    setIsOpenDeleteClass(false);
     setSelectedTimetable(undefined);
+    setSelectedGrade(undefined);
+    setSelectedClassCode('');
   };
 
   const handleSubmit = (e: any) => {
@@ -119,6 +125,8 @@ const Timetable = () => {
             a.teacher?.key === selectedTeacher?.key &&
             a.periods.includes(selectedPeriod!)
         ),
+        classCode: selectedClassCode,
+        grade: selectedGrade,
       } as Timetable,
     ]);
     reset();
@@ -343,7 +351,17 @@ const Timetable = () => {
             <Table sx={{ minWidth: 700 }} aria-label="customized table">
               <TableHead>
                 <TableRow>
-                  <StyledTableCell sx={{ minWidth: 250 }}>Day</StyledTableCell>
+                  <StyledTableCell
+                    sx={{
+                      minWidth: 250,
+                      display: 'flex',
+                      columnGap: '16px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    Day
+                    <TimetableAddMultiple />
+                  </StyledTableCell>
                   {periodNumbers.map((n) => (
                     <StyledTableCell align="center" sx={{ minWidth: 120 }}>
                       {n}
@@ -384,10 +402,11 @@ const Timetable = () => {
                                 tt.day === day &&
                                 tt.period === pn &&
                                 (selectedTeacherFilter === undefined ||
-                                  tt.teacher.key ===
+                                  tt.teacher?.key ===
                                     selectedTeacherFilter?.key) &&
                                 (selectedSubjectFilter === undefined ||
-                                  selectedSubjectFilter?.key === tt.subject.key)
+                                  selectedSubjectFilter?.key ===
+                                    tt.subject?.key)
                             )
                             .map(
                               (data) =>
@@ -405,7 +424,9 @@ const Timetable = () => {
                                       data.isAbsent && data.substitute
                                         ? `${data.substitute.initial} ${data.substitute.lastName}`
                                         : `${data.teacher.initial} ${data.teacher.lastName}`
-                                    } (${data.subject?.code})`}
+                                    } (${data.subject?.code || ''} ${
+                                      data.grade || ''
+                                    }${data.classCode || ''})`}
                                     deleteIcon={<Delete />}
                                     onClick={() => {
                                       if (data.isAbsent) {
@@ -495,15 +516,17 @@ const Timetable = () => {
                             required
                             sx={{ my: 1 }}
                           >
-                            {teachers.map(
-                              (t) =>
-                                t && (
-                                  <MenuItem
-                                    key={t.key}
-                                    value={t.key}
-                                  >{`${t.firstName} ${t.lastName}`}</MenuItem>
-                                )
-                            )}
+                            {teachers
+                              .sort((a,b) => (a.firstName > b.firstName) ? 1 : ((b.firstName > a.firstName) ? -1 : 0))
+                              .map(
+                                (t) =>
+                                  t && (
+                                    <MenuItem
+                                      key={t.key}
+                                      value={t.key}
+                                    >{`${t.firstName} ${t.lastName}`}</MenuItem>
+                                  )
+                              )}
                           </Select>
                         </FormControl>
                       </Grid>
@@ -552,7 +575,7 @@ const Timetable = () => {
                                   !!timetable.find(
                                     (t) =>
                                       t.day === dow &&
-                                      t.teacher.key === selectedTeacher?.key &&
+                                      t.teacher?.key === selectedTeacher?.key &&
                                       t.period === p
                                   )
                                 }
@@ -592,7 +615,7 @@ const Timetable = () => {
                             required
                             sx={{ my: 1 }}
                           >
-                            {subjects.map(
+                            {subjects.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0)).map(
                               (s) =>
                                 s && (
                                   <MenuItem key={s.key} value={s.key}>
@@ -601,6 +624,65 @@ const Timetable = () => {
                                 )
                             )}
                           </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <FormControl
+                          variant="standard"
+                          size="small"
+                          sx={{
+                            m: 1,
+                            minWidth: 120,
+                            margin: 'unset',
+                            width: '90%',
+                          }}
+                        >
+                          <InputLabel id="demo-simple-select-standard-label">
+                            Grade
+                          </InputLabel>
+                          <Select
+                            labelId="demo-simple-select-standard-label"
+                            id="demo-simple-select-standard"
+                            value={selectedGrade}
+                            onChange={(event: SelectChangeEvent) => {
+                              event?.target?.value &&
+                                setSelectedGrade(event.target.value);
+                            }}
+                            label="Grade"
+                            required
+                            sx={{ my: 1 }}
+                          >
+                            {[4, 5, 6, 7].map(
+                              (g) =>
+                                g && (
+                                  <MenuItem key={g} value={g.toString()}>
+                                    {`Grade ${g}`}
+                                  </MenuItem>
+                                )
+                            )}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+
+                      <Grid item xs={3}>
+                        <FormControl
+                          variant="standard"
+                          sx={{
+                            m: 1,
+                            minWidth: 120,
+                            margin: 'unset',
+                            width: '90%',
+                          }}
+                        >
+                          <TextField
+                            id="standard-basic"
+                            label="ClassCode"
+                            value={selectedClassCode}
+                            variant="standard"
+                            onChange={(e) =>
+                              setSelectedClassCode(e?.target?.value)
+                            }
+                          />
                         </FormControl>
                       </Grid>
                     </Grid>
@@ -724,11 +806,11 @@ const Timetable = () => {
                                 fp &&
                                 fp.day === selectedTimetable?.day &&
                                 fp.periods.includes(selectedTimetable.period) &&
-                                fp.teacher.key !==
-                                  selectedTimetable.teacher.key && (
+                                fp.teacher?.key !==
+                                  selectedTimetable.teacher?.key && (
                                   <MenuItem
-                                    key={fp.teacher.key}
-                                    value={fp.teacher.key}
+                                    key={fp.teacher?.key}
+                                    value={fp.teacher?.key}
                                   >{`${fp.teacher.initial} ${fp.teacher.lastName}`}</MenuItem>
                                 )
                             )}

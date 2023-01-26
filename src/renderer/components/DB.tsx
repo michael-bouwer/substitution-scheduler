@@ -65,12 +65,18 @@ const DB = () => {
         ? JSON.parse(e.target.result.toString())
         : {};
       clearAllData();
-      if (possibleData.absentees)
+      if (possibleData.absentees) {
         updateAbsentees(['init', possibleData.absentees]);
-      if (possibleData.freePeriods)
+        localforage.setItem(StorageKeys.ABSENTEES, possibleData.absentees);
+      }
+      if (possibleData.freePeriods) {
         updateFreePeriods(['init', possibleData.freePeriods]);
-      if (possibleData.timetable)
+        localforage.setItem(StorageKeys.FREE_PERIODS, possibleData.freePeriods);
+      }
+      if (possibleData.timetable) {
         updateTimetable(['init', possibleData.timetable]);
+        localforage.setItem(StorageKeys.TIMETABLE, possibleData.timetable);
+      }
       if (possibleData.teachers) {
         setTeachers(possibleData.teachers);
         localforage.setItem(StorageKeys.TEACHERS, possibleData.teachers);
@@ -222,8 +228,16 @@ const DB = () => {
         </Fade>
       </Modal>
 
-      <Snackbar open={open} autoHideDuration={4000} onClose={() => setOpen(false)}>
-        <Alert onClose={() => setOpen(false)} severity="success" sx={{ width: '100%' }}>
+      <Snackbar
+        open={open}
+        autoHideDuration={4000}
+        onClose={() => setOpen(false)}
+      >
+        <Alert
+          onClose={() => setOpen(false)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
           {message}
         </Alert>
       </Snackbar>

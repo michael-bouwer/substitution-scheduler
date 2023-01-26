@@ -29,6 +29,8 @@ export interface Timetable {
   substitute: Teacher | undefined;
   subject: Subject;
   isAbsent: boolean;
+  grade: string
+  classCode: string
 }
 
 export interface Absentee {

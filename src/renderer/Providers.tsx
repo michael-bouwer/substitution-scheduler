@@ -160,6 +160,8 @@ const reducerTimetable = (
           };
           editEntry.subject = data.subject;
           editEntry.isAbsent = data.isAbsent;
+          editEntry.classCode = data.classCode;
+          editEntry.grade = data.grade;
           const withoutEntry = state.filter(
             (e) =>
               e.day !== data.day ||

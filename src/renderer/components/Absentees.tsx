@@ -5,8 +5,6 @@ import {
   Backdrop,
   Box,
   Button,
-  Card,
-  CardActions,
   CardContent,
   Checkbox,
   Chip,
@@ -15,7 +13,6 @@ import {
   FormControlLabel,
   FormGroup,
   Grid,
-  IconButton,
   InputLabel,
   ListItemText,
   MenuItem,
@@ -33,12 +30,10 @@ import { useState } from 'react';
 const Absentees = () => {
   const {
     absentees,
-    freePeriods,
     teachers,
     timetable,
     updateAbsentees,
     updateTimetable,
-    updateFreePeriods,
   } = useApp();
   const [isOpenAddAbsentee, setIsOpenAddAbsentee] = useState<boolean>(false);
   const [selectedDow, setSelectedDow] = useState<DOW | undefined>();
@@ -305,7 +300,7 @@ const Absentees = () => {
                         onChange={(event: SelectChangeEvent) => {
                           const key = event?.target?.value;
                           teachers.find(
-                            (t) => t && t.key === key && setSelectedTeacher(t)
+                            (t) => t && t?.key === key && setSelectedTeacher(t)
                           );
                         }}
                         label="Teacher"
@@ -319,7 +314,7 @@ const Absentees = () => {
                               !absentees.find(
                                 (a) =>
                                   a.day === selectedDow &&
-                                  a.teacher.key === t.key
+                                  a.teacher?.key === t?.key
                               )
                           )
                           .map(
