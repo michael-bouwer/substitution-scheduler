@@ -5,6 +5,7 @@ export interface Teacher {
   lastName: string;
   email: string | undefined;
   contact: string | undefined;
+  newKey?: string | undefined;
 }
 
 export interface Subject {
@@ -29,8 +30,8 @@ export interface Timetable {
   substitute: Teacher | undefined;
   subject: Subject;
   isAbsent: boolean;
-  grade: string
-  classCode: string
+  grade: string;
+  classCode: string;
 }
 
 export interface Absentee {

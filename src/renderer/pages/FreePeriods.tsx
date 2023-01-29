@@ -40,7 +40,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
-    textAlign: 'justify'
+    textAlign: 'justify',
     // border: '1px solid gray'
   },
 }));
@@ -137,6 +137,24 @@ const FreePeriods = () => {
     setDow(data.day);
     setSelectedTeacher(data.teacher);
     setSelectedPeriods(data.periods);
+  };
+
+  const deleteAll = () => {
+    updateFreePeriods([
+      'edit',
+      {
+        day: dow,
+        periods: [],
+        teacher: selectedTeacher,
+        isAbsent: !!absentees.find(
+          (a) =>
+            a.day === dow &&
+            a.teacher?.key === selectedTeacher?.key &&
+            a.periods.find((p) => selectedPeriods.includes(p))
+        ),
+      } as FreePeriod,
+    ]);
+    reset();
   };
 
   return (
@@ -243,11 +261,17 @@ const FreePeriods = () => {
                   variant="h6"
                   component="h2"
                 >
-                  {mode === ModalMode.ADD ? 'Capture' : 'Update'} Free Period
-                  for a Teacher on {dow}.
+                  {mode === ModalMode.ADD ? 'Capture' : 'Update'} free periods
+                  for{' '}
+                  {mode === ModalMode.ADD
+                    ? 'a teacher'
+                    : `${selectedTeacher?.initial} ${selectedTeacher?.lastName}`}{' '}
+                  on {dow}.
                 </Typography>
                 <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-                  Select the teacher, day of the week and free period.
+                  {mode === ModalMode.ADD
+                    ? 'Select a teacher and their free periods on this day'
+                    : 'Update the free periods or delete all free periods for this day'}
                 </Typography>
               </>
               <form onSubmit={handleSubmit}>
@@ -332,10 +356,13 @@ const FreePeriods = () => {
                           value={selectedPeriods}
                           onChange={handleMultiSelectChange}
                           label="Teacher"
-                          required
                           multiple
                           sx={{ my: 1 }}
-                          renderValue={(selected) => selected.join(', ')}
+                          renderValue={(selected) =>
+                            selected
+                              .sort((a, b) => parseInt(a) - parseInt(b))
+                              .join(', ')
+                          }
                         >
                           {[
                             '1',
@@ -371,6 +398,15 @@ const FreePeriods = () => {
                     columnGap: '16px',
                   }}
                 >
+                  {mode === ModalMode.EDIT && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={deleteAll}
+                    >
+                      Delete all for this day
+                    </Button>
+                  )}
                   <Button variant="contained" type="submit">
                     {mode === ModalMode.ADD ? 'Add' : 'Update'}
                   </Button>

@@ -68,12 +68,22 @@ const appContextValues: AppContext = {
 
 const appContext = createContext<AppContext>(appContextValues);
 export const useApp = () => useContext(appContext);
-type CommonActions = 'init' | 'add' | 'edit' | 'delete' | 'reset';
+type CommonActions =
+  | 'init'
+  | 'add'
+  | 'edit'
+  | 'delete'
+  | 'reset'
+  | 'edit-teacher';
+type TimetableActions = 'edit-substitute' | 'delete-substitute';
 type FreePeriodAction = [
   CommonActions,
   (FreePeriod | FreePeriod[] | undefined)?
 ];
-type TimetableAction = [CommonActions, (Timetable | Timetable[] | undefined)?];
+type TimetableAction = [
+  CommonActions | TimetableActions,
+  (Timetable | Timetable[] | undefined)?
+];
 type AbsenteeAction = [CommonActions, (Absentee | Absentee[] | undefined)?];
 
 const reducerFreePeriods = (
@@ -102,6 +112,27 @@ const reducerFreePeriods = (
           editEntry.periods = data.periods;
           editEntry.day = data.day;
           editEntry.teacher = data.teacher;
+          const withoutEntry = state.filter(
+            (e) => e.day !== data.day || e.teacher?.key !== data.teacher?.key
+          );
+          localforage.setItem<FreePeriod[]>(StorageKeys.FREE_PERIODS, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, editEntry];
+        }
+      }
+      return state;
+    case 'edit-teacher':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) => e.day === data.day && e.teacher?.key === data.teacher?.key
+        );
+        if (editEntry && data.teacher?.newKey) {
+          editEntry.periods = data.periods;
+          editEntry.day = data.day;
+          editEntry.teacher = data.teacher;
+          editEntry.teacher.key = data.teacher?.newKey;
           const withoutEntry = state.filter(
             (e) => e.day !== data.day || e.teacher?.key !== data.teacher?.key
           );
@@ -154,10 +185,7 @@ const reducerTimetable = (
         );
         if (editEntry) {
           editEntry.substitute = data.substitute;
-          editEntry.teacher = {
-            ...data.teacher,
-            key: `${data.teacher.initial.toLowerCase()}-${data.teacher.firstName.toLowerCase()}-${data.teacher.lastName.toLowerCase()}`,
-          };
+          editEntry.teacher = data.teacher;
           editEntry.subject = data.subject;
           editEntry.isAbsent = data.isAbsent;
           editEntry.classCode = data.classCode;
@@ -165,7 +193,67 @@ const reducerTimetable = (
           const withoutEntry = state.filter(
             (e) =>
               e.day !== data.day ||
-              e.teacher?.key !== editEntry.teacher?.key ||
+              e.teacher?.key !== data.teacher?.key ||
+              e.period !== data.period
+          );
+          localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, editEntry];
+        }
+      }
+      return state;
+    case 'edit-teacher':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) =>
+            e.day === data.day &&
+            e.teacher?.key === data.teacher?.key &&
+            e.period === data.period
+        );
+        if (editEntry && data.teacher?.newKey) {
+          editEntry.substitute = data.substitute;
+          editEntry.teacher = data.teacher;
+          editEntry.teacher.key = data.teacher?.newKey;
+          editEntry.subject = data.subject;
+          editEntry.isAbsent = data.isAbsent;
+          editEntry.classCode = data.classCode;
+          editEntry.grade = data.grade;
+          const withoutEntry = state.filter(
+            (e) =>
+              e.day !== data.day ||
+              e.teacher?.key !== data.teacher?.key ||
+              e.period !== data.period
+          );
+          localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, editEntry];
+        }
+      }
+      return state;
+    case 'edit-substitute':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) =>
+            e.day === data.day &&
+            e.substitute?.key === data.substitute?.key &&
+            e.period === data.period
+        );
+        if (editEntry && data.substitute?.newKey) {
+          editEntry.teacher = data.teacher;
+          editEntry.substitute = data.substitute;
+          editEntry.substitute.key = data.substitute?.newKey;
+          editEntry.subject = data.subject;
+          editEntry.isAbsent = data.isAbsent;
+          editEntry.classCode = data.classCode;
+          editEntry.grade = data.grade;
+          const withoutEntry = state.filter(
+            (e) =>
+              e.day !== data.day ||
+              e.substitute?.key !== data.substitute?.key ||
               e.period !== data.period
           );
           localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, [
@@ -182,6 +270,18 @@ const reducerTimetable = (
           (e) =>
             e.day !== data.day ||
             e.teacher?.key !== data.teacher?.key ||
+            e.period !== data.period
+        );
+        localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, filtered);
+        return filtered;
+      }
+      return state;
+    case 'delete-substitute':
+      if (data && !(data instanceof Array)) {
+        const filtered = state.filter(
+          (e) =>
+            e.day !== data.day ||
+            e.substitute?.key !== data.substitute?.key ||
             e.period !== data.period
         );
         localforage.setItem<Timetable[]>(StorageKeys.TIMETABLE, filtered);
@@ -215,12 +315,30 @@ const reducerAbsentee = (state: Absentee[], [action, data]: AbsenteeAction) => {
         if (editEntry) {
           editEntry.periods = data.periods;
           editEntry.day = data.day;
-          editEntry.teacher = {
-            ...data.teacher,
-            key: `${data.teacher.initial.toLowerCase()}-${data.teacher.firstName.toLowerCase()}-${data.teacher.lastName.toLowerCase()}`,
-          };
+          editEntry.teacher = data.teacher;
           const withoutEntry = state.filter(
-            (e) => e.day !== data.day || e.teacher?.key !== editEntry.teacher?.key
+            (e) => e.day !== data.day || e.teacher?.key !== data.teacher?.key
+          );
+          localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, [
+            ...withoutEntry,
+            editEntry,
+          ]);
+          return [...withoutEntry, editEntry];
+        }
+      }
+      return state;
+    case 'edit-teacher':
+      if (data && !(data instanceof Array)) {
+        const editEntry = state.find(
+          (e) => e.day === data.day && e.teacher?.key === data.teacher?.key
+        );
+        if (editEntry && data.teacher?.newKey) {
+          editEntry.periods = data.periods;
+          editEntry.day = data.day;
+          editEntry.teacher = data.teacher;
+          editEntry.teacher.key = data.teacher?.newKey;
+          const withoutEntry = state.filter(
+            (e) => e.day !== data.day || e.teacher?.key !== data.teacher?.key
           );
           localforage.setItem<Absentee[]>(StorageKeys.ABSENTEES, [
             ...withoutEntry,
@@ -318,23 +436,59 @@ const AppProvider = (props: Props) => {
       });
       localforage.setItem(StorageKeys.TEACHERS, copy);
       setTeachers(copy);
-      timetable.forEach(
-        (t) =>
-          t &&
-          t.teacher.key === teacher.key &&
-          updateTimetable(['edit', { ...t, teacher }])
-      );
+      timetable.forEach((t) => {
+        if (t.teacher.key === teacher.key)
+          updateTimetable([
+            'edit-teacher',
+            {
+              ...t,
+              teacher: {
+                ...teacher,
+                newKey: `${teacher.initial.toLowerCase()}-${teacher.firstName.toLowerCase()}-${teacher.lastName.toLowerCase()}`,
+              },
+            },
+          ]);
+        if (t.substitute?.key === teacher.key)
+          updateTimetable([
+            'edit-substitute',
+            {
+              ...t,
+              substitute: {
+                ...teacher,
+                newKey: `${teacher.initial.toLowerCase()}-${teacher.firstName.toLowerCase()}-${teacher.lastName.toLowerCase()}`,
+              },
+            },
+          ]);
+      });
       absentees.forEach(
         (a) =>
           a &&
           a.teacher.key === teacher.key &&
-          updateAbsentees(['edit', { ...a, teacher }])
+          updateAbsentees([
+            'edit-teacher',
+            {
+              ...a,
+              teacher: {
+                ...teacher,
+                newKey: `${teacher.initial.toLowerCase()}-${teacher.firstName.toLowerCase()}-${teacher.lastName.toLowerCase()}`,
+              },
+            },
+          ])
       );
       freePeriods.forEach(
         (fp) =>
           fp &&
           fp.teacher.key === teacher.key &&
-          updateFreePeriods(['edit', { ...fp, teacher }])
+          updateFreePeriods([
+            'edit-teacher',
+            {
+              ...fp,
+              teacher: {
+                ...teacher,
+                newKey: `${teacher.initial.toLowerCase()}-${teacher.firstName.toLowerCase()}-${teacher.lastName.toLowerCase()}`,
+              },
+            },
+          ])
       );
     }
   };
@@ -342,12 +496,12 @@ const AppProvider = (props: Props) => {
     const copy = teachers.filter((t) => t && t.key !== teacher.key);
     localforage.setItem(StorageKeys.TEACHERS, copy);
     setTeachers(copy);
-    timetable.forEach(
-      (t) =>
-        t &&
-        t.teacher.key === teacher.key &&
-        updateTimetable(['delete', { ...t, teacher }])
-    );
+    timetable.forEach((t) => {
+      if (t.teacher.key === teacher.key)
+        updateTimetable(['delete', { ...t, teacher }]);
+      else if (t.substitute?.key === teacher.key)
+        updateTimetable(['delete-substitute', t]);
+    });
     absentees.forEach(
       (a) =>
         a &&
