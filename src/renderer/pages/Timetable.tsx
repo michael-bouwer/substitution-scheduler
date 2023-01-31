@@ -27,7 +27,7 @@ import { DOW, FreePeriod, Subject, Teacher, Timetable } from 'renderer/Types';
 import { days, modalStyle, periodNumbers } from 'renderer/lib';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 
-import { Add, Delete, Print, Save } from '@mui/icons-material';
+import { Add, Delete, Image, Print, Save } from '@mui/icons-material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -40,6 +40,7 @@ import { useState } from 'react';
 import Absentees from 'renderer/components/Absentees';
 import xlsx, { IJsonSheet } from 'json-as-xlsx';
 import TimetableAddMultiple from 'renderer/components/TimetableAddMultiple';
+import html2canvas from 'html2canvas';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -425,12 +426,33 @@ const Timetable = () => {
               Save Timetable
             </Button>
           </Grid>
+          <Grid item>
+            <Button
+              startIcon={<Image />}
+              variant="contained"
+              id="save-img"
+              onClick={() => {
+                //Save image of table
+                html2canvas(document.querySelector('#print-to-image')!).then(
+                  (canvas) => {
+                    var image = canvas
+                      .toDataURL('image/png')
+                      .replace('image/png', 'image/octet-stream'); // here is the most important part because if you dont replace you will get a DOM 18 exception.
+
+                    window.location.href = image; // it will save locally
+                  }
+                );
+              }}
+            >
+              Save Image
+            </Button>
+          </Grid>
         </Grid>
       </Paper>
       <Paper elevation={12}>
         <Box>
           <TableContainer component={Paper} id="printable-area">
-            <Table aria-label="customized table">
+            <Table id="print-to-image" aria-label="customized table">
               <TableHead>
                 <TableRow>
                   <StyledTableCell
