@@ -1,5 +1,4 @@
 import './Shared.scss';
-import { ipcRenderer } from 'electron';
 
 import {
   Alert,
@@ -46,10 +45,17 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: theme.palette.common.black,
     color: theme.palette.common.white,
+    padding: '8px',
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
     textAlign: 'justify',
+    padding: '2px',
+    // border: '1px solid gray'
+  },
+  [`&.${tableCellClasses.body}:nth-child(1)`]: {
+    padding: '4px 8px',
+    verticalAlign: 'top',
     // border: '1px solid gray'
   },
 }));
@@ -201,7 +207,20 @@ const Timetable = () => {
       const currentData: Extract = { day };
       periodNumbers.forEach((pn) => {
         const entriesForThisPeriod = timetable
-          .filter((t) => t.day === day && t.period === pn)
+          .filter(
+            (tt) =>
+              tt &&
+              tt.day === day &&
+              tt.period === pn &&
+              (selectedTeacherFilter === undefined ||
+                tt.teacher?.key === selectedTeacherFilter?.key) &&
+              (selectedSubjectFilter === undefined ||
+                selectedSubjectFilter?.key === tt.subject?.key) &&
+              (selectedGradeFilter === undefined ||
+                tt.grade === selectedGradeFilter) &&
+              (selectedClassCodeFilter === undefined ||
+                tt.classCode === selectedClassCodeFilter)
+          )
           .map(
             (t) =>
               t &&
@@ -340,7 +359,7 @@ const Timetable = () => {
                 <MenuItem value="">
                   <em>ALL</em>
                 </MenuItem>
-                {["4", "5", "6", "7"].map(
+                {['4', '5', '6', '7'].map(
                   (s) =>
                     s && (
                       <MenuItem key={s} value={s}>
@@ -411,14 +430,12 @@ const Timetable = () => {
       <Paper elevation={12}>
         <Box>
           <TableContainer component={Paper} id="printable-area">
-            <Table sx={{ minWidth: 700 }} aria-label="customized table">
+            <Table aria-label="customized table">
               <TableHead>
                 <TableRow>
                   <StyledTableCell
                     sx={{
-                      minWidth: 250,
                       display: 'flex',
-                      columnGap: '16px',
                       alignItems: 'center',
                     }}
                   >
@@ -456,7 +473,7 @@ const Timetable = () => {
                         <StyledTableCell
                           key={pn}
                           align="center"
-                          sx={{ minWidth: 120, border: '1px solid lightgray' }}
+                          sx={{ border: '1px solid lightgray' }}
                         >
                           {timetable
                             .filter(
@@ -515,7 +532,7 @@ const Timetable = () => {
                                       setSelectedSubject(data.subject);
                                       setDow(day as DOW);
                                     }}
-                                    sx={{ margin: '2px' }}
+                                    sx={{ margin: '2px', borderRadius: '4px' }}
                                   />
                                 )
                             )}

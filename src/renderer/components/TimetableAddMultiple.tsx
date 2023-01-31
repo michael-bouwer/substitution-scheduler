@@ -203,7 +203,7 @@ const TimetableAddMultiple = (props: Props) => {
     <Box>
       <Button
         color="primary"
-        sx={{ mx: 2 }}
+        sx={{ ml: 1 }}
         startIcon={<Add />}
         variant="contained"
         size="small"
